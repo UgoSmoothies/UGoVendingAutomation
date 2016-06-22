@@ -1,0 +1,513 @@
+#include <stdlib.h>
+#include <math.h>
+
+// **HIGH -> means off for normal relays
+// **LOW -> means on for normal relays
+// ** HIGH -> means on for Solid State relays
+// ** LOW -> means off for Solid State relays 
+// ** Assumming "hot" -> actuator goes down
+// ** Assuming "neutral" -> actuator goes up to orginal position 
+
+//Distance Calibration Measurments
+int TopPosition = 125;
+int TopOfCup = 280;
+int TopOfSmoothie= 320;
+int BottomOfCup = 390;
+int BottomOfCleaning = 420;
+int CleaningLevel = 350;
+
+
+int Read[15] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};  // Array to hold Actuator Portentiometer Reads
+int ValRef = 0;  // holder value for use during quicksort
+
+const int Potentiometer = A1;    // Actuator Potentiometer Pin
+
+const int pinButtonBlend = 2; 
+const int pinButtonClean = 3;
+const int pinWaterPump = 6;
+const int ActuatorHot = 7; 
+const int ActuatorNeutral = 8; 
+const int pinLED_READY = 9;
+const int pinLED_IN_USE = 10;
+const int pinBlender = 12; //normal relay
+const int pinBlenderSSR = 31; // solid state relay 
+
+const int START= 14;
+
+int ValButtonClean = LOW;
+
+int ValButtonBlend = LOW;
+
+
+void setup() {
+  //Serial.begin(9600);
+  pinMode(Potentiometer, INPUT);
+  pinMode(pinButtonBlend, INPUT);
+  pinMode(pinButtonClean, INPUT);
+  
+  pinMode(ActuatorHot, OUTPUT);
+  digitalWrite(ActuatorHot, HIGH);
+  
+  pinMode(ActuatorNeutral, OUTPUT);
+
+  Unjam();
+  if (MeasureDistance() > TopPosition){     // is blender at top?
+    digitalWrite(ActuatorNeutral, LOW);
+    
+  }
+  else
+  {
+    digitalWrite(ActuatorNeutral, HIGH);
+  }
+  
+  pinMode(pinBlenderSSR, OUTPUT);
+  pinMode(pinBlender, OUTPUT);
+  TurnBlenderOff ();
+  
+  pinMode(pinLED_READY, OUTPUT);
+  digitalWrite(pinLED_READY, LOW);
+  
+  pinMode(pinLED_IN_USE, OUTPUT);
+  digitalWrite(pinLED_IN_USE, LOW);
+  
+  
+  pinMode(pinButtonBlend, INPUT);
+  pinMode(pinButtonClean, INPUT);
+  
+  pinMode(pinWaterPump, OUTPUT);
+  digitalWrite(pinWaterPump, HIGH);
+
+
+  
+  while (MeasureDistance() > TopPosition){
+    delay(1);   //move to top position
+  }
+  digitalWrite(ActuatorNeutral, HIGH);
+  digitalWrite(pinLED_READY, HIGH);   // status ready
+
+}
+
+void TurnBlenderOn () {
+
+  digitalWrite(pinBlenderSSR, HIGH);
+  delay(20);
+  digitalWrite(pinBlender, LOW);
+   
+}
+
+void TurnBlenderOff () {
+
+  digitalWrite(pinBlenderSSR, LOW);
+  delay(50);
+  digitalWrite(pinBlender, HIGH);
+
+}
+
+int MeasureDistance()  
+// Measure distance of actuator - takes 15 reads to compensate for inaccuracy
+{
+  for (int i = 0; i < 15; i++)
+  {
+    Read [i] = analogRead(Potentiometer);
+    delay(1); 
+  }
+  QuickSort();  // sort entries 
+  return Read[7];
+  // send middle read value which is supposed to be the intended distance
+}
+
+void QuickSort ()      
+// quick sort algorithm to arrange an array of length 15 in ascending order
+{
+  for (int i = 0; i < 14; i++)
+  {
+    for (int j = i+1 ; j>0; j--)
+    if (Read[j] < Read[j-1])      // element out of order
+    {
+      ValRef = Read[j];  // tempory hold value j
+      Read[j] = Read[j-1];  // replace j with higher entry
+      Read[j-1] = ValRef;  // replace other entry
+    }
+  }
+}
+
+void CustomPulses(int Time, int cycles, int Delay, int offset)
+//blending sequence for custome Time, number of cycles, delay between pulses, and offset between going down and up 
+
+  {
+    digitalWrite(ActuatorNeutral, HIGH);  
+    digitalWrite(ActuatorHot, HIGH);  
+    for(int i = 0; i < cycles; i++)
+    {
+      digitalWrite(ActuatorHot, LOW);       //plunge down
+      delay (Time + offset);
+      digitalWrite(ActuatorHot, HIGH);
+  
+      delay(Delay);
+  
+      digitalWrite(ActuatorNeutral, LOW);     //plunge up
+      delay (Time - offset);
+      digitalWrite(ActuatorNeutral, HIGH);
+  
+      delay(Delay);
+      
+    }
+    digitalWrite(ActuatorNeutral, HIGH);  
+    digitalWrite(ActuatorHot, HIGH);  
+  }
+
+//Jackimplementation 
+void RaiseBlenderFromMiddleToTop () {
+
+
+digitalWrite(ActuatorNeutral, LOW);
+
+delay(100);
+
+digitalWrite(ActuatorNeutral, HIGH);
+
+  
+}
+
+//Jackimplementation 
+void PlungeBlenderToBottomFromTop () {
+
+digitalWrite(ActuatorHot, LOW);
+
+delay(160);
+
+digitalWrite(ActuatorHot, HIGH);
+
+}
+
+
+void Unjam(){
+//unjam actuator if stuck
+   digitalWrite(ActuatorNeutral, LOW);
+   delay(50);
+   digitalWrite(ActuatorHot, LOW);
+   delay(25);
+   digitalWrite(ActuatorNeutral, HIGH);
+   delay(25);
+   digitalWrite(ActuatorHot, HIGH);
+   delay(50);
+   digitalWrite(ActuatorNeutral, LOW);
+   delay(25);
+   digitalWrite(ActuatorHot, LOW);
+   delay(25);
+   digitalWrite(ActuatorNeutral, HIGH);
+   delay(25);
+   digitalWrite(ActuatorHot, HIGH);
+}
+
+//Old Code
+void MediumPulses() {
+  //make medium pulses for blender actuator (1.65 secs)
+  digitalWrite(ActuatorNeutral, LOW);   // reverse actuator
+  digitalWrite(ActuatorHot, HIGH);
+  delay(20);
+  digitalWrite(ActuatorNeutral, HIGH);   // actuator down
+  delay(10); // pause to reduce impact
+  digitalWrite(ActuatorHot, LOW);
+  delay(5);
+  digitalWrite(ActuatorHot, HIGH);
+  delay(5); // pause to reduce impact
+  digitalWrite(ActuatorNeutral, LOW);   // reverse actuator
+  delay(20);
+  digitalWrite(ActuatorHot, LOW);
+  delay(50); // power both actuator leads to prevent jamming
+  digitalWrite(ActuatorNeutral, HIGH);   // actuator down
+  delay(10);
+  digitalWrite(ActuatorNeutral, LOW);  // power both actuator leads to prevent jamming
+  delay(50); // pause to reduce impact
+  digitalWrite(ActuatorHot, HIGH); // reverse actuator
+  delay(20);
+  digitalWrite(ActuatorNeutral, HIGH);   // actuator down
+  delay(10); // pause to reduce impact
+  digitalWrite(ActuatorHot, LOW);
+  delay(60);
+  digitalWrite(ActuatorNeutral, LOW);   // reverse actuator
+  delay(20); // pause to reduce impact
+  digitalWrite(ActuatorHot, HIGH);
+  delay(50);
+  digitalWrite(ActuatorNeutral, HIGH);   // actuator down
+  delay(5); // pause to reduce impact
+  digitalWrite(ActuatorHot, LOW);
+  delay(60);
+  digitalWrite(ActuatorHot, HIGH);
+  delay(5);
+  digitalWrite(ActuatorNeutral, LOW);   // reverse actuator
+  delay(100); // pause to reduce impact
+  digitalWrite(ActuatorNeutral, HIGH);   // actuator down
+  delay(5); // pause to reduce impact
+  digitalWrite(ActuatorHot, LOW);
+  delay(60);
+  digitalWrite(ActuatorNeutral, HIGH);   // actuator down
+  digitalWrite(ActuatorHot, HIGH);
+
+
+}
+
+
+
+//roughly 20s for one iteration of blend process 
+
+void Blend() { 
+    
+    digitalWrite(ActuatorHot, LOW);
+    
+    while (MeasureDistance()  < TopOfCup - 100)  // check for top of cup
+    {
+      delay(1);
+    }
+
+     while (MeasureDistance()  < TopOfCup - 50)  // check for top of cup
+    {
+      digitalWrite(ActuatorHot, LOW);
+      delay(15);
+      digitalWrite(ActuatorHot, HIGH);
+    }
+
+    while (MeasureDistance()  < TopOfCup)  // check for top of cup
+    {
+      digitalWrite(ActuatorHot, LOW);
+      delay(15);
+      digitalWrite(ActuatorHot, HIGH);
+      delay(15);
+    }
+    
+    while (MeasureDistance()  < TopOfSmoothie- 25)  // check for top of cup
+    {
+      digitalWrite(ActuatorHot, LOW);
+      delay(15);
+      digitalWrite(ActuatorHot, HIGH);
+      delay(30);
+    }
+    
+    TurnBlenderOn ();
+    while (MeasureDistance()  < TopOfSmoothie + 15)  // check for top of cup
+    {
+      digitalWrite(ActuatorHot, LOW);
+      delay(15);
+      digitalWrite(ActuatorHot, HIGH);
+      delay(45);
+    }
+
+   //preblend to reduce splatter
+  
+   CustomPulses(20, 12, 100, 5);  
+   CustomPulses(35, 5, 200, 10); 
+   delay(1000);
+   
+   //Main Blend Sequence
+   while(MeasureDistance()  < BottomOfCup){
+   Unjam();
+   CustomPulses(120, 4, 150, -10);  
+   if (MeasureDistance()  < BottomOfCup){
+      CustomPulses(20, 6, 0, 4);
+      CustomPulses(50, 5, 150, 20);   
+    }
+    delay(1500);
+   }
+
+   Unjam();
+   
+   digitalWrite(ActuatorNeutral, LOW);
+   //bring blender to top of smoothie
+   while(MeasureDistance()  > TopOfSmoothie-25)
+   {
+    delay (1);
+   }
+   digitalWrite(ActuatorNeutral, HIGH);
+   delay(1000);
+   //slow down
+   while(MeasureDistance()  > TopOfSmoothie)
+   {
+    digitalWrite(ActuatorNeutral, LOW);
+    delay (15);
+    digitalWrite(ActuatorNeutral, HIGH);
+   }    
+
+   //final pump
+    digitalWrite(ActuatorNeutral, HIGH);
+    CustomPulses(150, 4, 150, 50);
+    delay(2000);
+    CustomPulses(150, 2, 150, 25);
+    CustomPulses(50, 5, 150, 5);
+   
+
+
+   // final stir
+   for( int i =0; i < 2; i++){
+      Unjam();
+      //Raise blender through cup
+      while (MeasureDistance()  > TopOfSmoothie + 50)  // check for top of cup
+      {
+        digitalWrite(ActuatorNeutral, LOW);
+        delay(15);
+        digitalWrite(ActuatorNeutral, HIGH);
+      }
+      while (MeasureDistance()  > TopOfSmoothie + 25)  // check for top of cup
+      {
+        digitalWrite(ActuatorNeutral, LOW);
+        delay(15);
+        digitalWrite(ActuatorNeutral, HIGH);
+        delay(15);
+      }
+      
+      while (MeasureDistance()  > TopOfSmoothie + 50)  // check for top of cup
+      {
+        digitalWrite(ActuatorNeutral, LOW);
+        delay(15);
+        digitalWrite(ActuatorNeutral, HIGH);
+        delay(30);
+      }
+      
+      delay(1000);
+
+      //Raise blender through cup
+         while (MeasureDistance()  < BottomOfCup - 50)  // check for top of cup
+      {
+        digitalWrite(ActuatorHot, LOW);
+        delay(15);
+        digitalWrite(ActuatorHot, HIGH);
+      }
+  
+      while (MeasureDistance()  < BottomOfCup - 25)  // check for top of cup
+      {
+        digitalWrite(ActuatorHot, LOW);
+        delay(15);
+        digitalWrite(ActuatorHot, HIGH);
+        delay(15);
+      }
+      
+      while (MeasureDistance()  < BottomOfCup)  // check for top of cup
+      {
+        digitalWrite(ActuatorHot, LOW);
+        delay(15);
+        digitalWrite(ActuatorHot, HIGH);
+        delay(30);
+      }
+      delay(1000);
+  }
+
+   TurnBlenderOff ();
+
+   Unjam();
+   //Bring Blender out of smoothie 
+   digitalWrite(ActuatorNeutral, LOW);
+   while(MeasureDistance()  > TopOfSmoothie-10)
+   {
+    delay (1);
+   }
+   digitalWrite(ActuatorNeutral, HIGH);
+   //slow down to half speed
+   while(MeasureDistance()  > TopOfSmoothie)
+   {
+    digitalWrite(ActuatorNeutral, LOW);
+    delay (15);
+    digitalWrite(ActuatorNeutral, HIGH);
+   }    
+
+   //delay(2000);
+    Unjam();
+    
+    CustomPulses(40, 5 , 0, -15); // shake off fruit
+    
+    //bring blender to top position
+    digitalWrite(ActuatorNeutral, LOW);
+    while (MeasureDistance()  > TopPosition){
+    delay(1);
+    }
+    digitalWrite(ActuatorNeutral, HIGH);
+    
+    
+}
+
+void Clean() {       
+   digitalWrite(ActuatorHot, LOW);
+    
+    while (MeasureDistance()  < TopOfCup)  // check for top of cup
+    {
+      delay(1);
+    }
+     while (MeasureDistance()  < BottomOfCleaning - 50)  // check position
+    {
+      digitalWrite(ActuatorHot, LOW);
+      delay(15);
+      digitalWrite(ActuatorHot, HIGH);
+    }
+    while (MeasureDistance()  < BottomOfCleaning)  // check for bottom of cleaning cup
+    {
+      digitalWrite(ActuatorHot, LOW);
+      delay(15);
+      digitalWrite(ActuatorHot, HIGH);
+      delay(30);
+    }
+ 
+    
+    TurnBlenderOn ();
+
+    delay(500);
+    
+    digitalWrite(pinWaterPump, LOW);
+    Unjam();
+
+    while (MeasureDistance()  > CleaningLevel)  // bring blades into cleaning position
+    {
+      digitalWrite(ActuatorNeutral, LOW);
+      delay(15);
+      digitalWrite(ActuatorNeutral, HIGH);
+      delay(10);
+    }
+    
+
+    CustomPulses(100, 6, 50, -16);
+    TurnBlenderOff ();
+    CustomPulses(100, 2, 50, -16);
+    delay(200);
+    digitalWrite(pinWaterPump, HIGH); 
+
+    delay(200);
+
+    digitalWrite(ActuatorNeutral, LOW);
+    while (MeasureDistance()  > TopPosition){
+    delay(1);
+    }
+    digitalWrite(ActuatorNeutral, HIGH);
+}
+
+
+
+void loop() {
+  
+
+ 
+ if (digitalRead(pinButtonClean) == LOW) {  
+ delay(5);     
+ if (digitalRead(pinButtonClean) == LOW) {
+      digitalWrite(pinLED_READY, LOW);
+      digitalWrite(pinLED_IN_USE, HIGH); 
+  
+      Clean();
+
+      digitalWrite(pinLED_IN_USE, LOW);
+      digitalWrite(pinLED_READY, HIGH);
+  }  
+  }
+
+ if (digitalRead(pinButtonBlend) == LOW) {   
+ delay(5);    
+ if (digitalRead(pinButtonBlend) == LOW) {
+ 
+      digitalWrite(pinLED_READY, LOW);
+      digitalWrite(pinLED_IN_USE, HIGH);  
+  
+      Blend();
+    
+      digitalWrite(pinLED_IN_USE, LOW);
+      digitalWrite(pinLED_READY, HIGH);
+  }  
+  }  
+
+}
