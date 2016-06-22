@@ -18,7 +18,7 @@ int CleaningLevel = 350;
 
 
 int Read[15] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};  // Array to hold Actuator Portentiometer Reads
-int ValRef = 0;  // holder value for use during quicksort
+int ValRef = 0;  // holder value for use during bubblesort
 
 const int Potentiometer = A1;    // Actuator Potentiometer Pin
 
@@ -111,13 +111,13 @@ int MeasureDistance()
     Read [i] = analogRead(Potentiometer);
     delay(1); 
   }
-  QuickSort();  // sort entries 
+  BubbleSort();  // sort entries 
   return Read[7];
   // send middle read value which is supposed to be the intended distance
 }
 
-void QuickSort ()      
-// quick sort algorithm to arrange an array of length 15 in ascending order
+void BubbleSort ()      
+// Bubble sort algorithm to arrange an array of length 15 in ascending order
 {
   for (int i = 0; i < 14; i++)
   {
