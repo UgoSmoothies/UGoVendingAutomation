@@ -9,12 +9,12 @@
 // ** Assuming "neutral" -> actuator goes up to orginal position 
 
 //Distance Calibration Measurments
-int TopPosition = 125;
-int TopOfCup = 280;
-int TopOfSmoothie= 310;
-int BottomOfCup = 390;
-int BottomOfCleaning = 420;
-int CleaningLevel = 350;
+int TopPosition = 145;//Old:125
+int TopOfCup = 310; //Old:280 300
+int TopOfSmoothie= 340; //Old:310
+int BottomOfCup = 415; //Old:390 //410
+int BottomOfCleaning = 405;//Old:420
+int CleaningLevel = 358; //Old:350
 
 
 int Read[15] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};  // Array to hold Actuator Portentiometer Reads
@@ -70,9 +70,10 @@ void setup() {
   pinMode(pinLED_IN_USE, OUTPUT);
   digitalWrite(pinLED_IN_USE, LOW);
   
-  
+  //Redundant 
   pinMode(pinButtonBlend, INPUT);
   pinMode(pinButtonClean, INPUT);
+  //
   
   pinMode(pinWaterPump, OUTPUT);
   digitalWrite(pinWaterPump, HIGH);
@@ -133,7 +134,6 @@ void BubbleSort ()
 
 void CustomPulses(int Time, int cycles, int Delay, int offset)
 //blending sequence for custome Time, number of cycles, delay between pulses, and offset between going down and up 
-
   {
     digitalWrite(ActuatorNeutral, HIGH);  
     digitalWrite(ActuatorHot, HIGH);  
@@ -156,7 +156,7 @@ void CustomPulses(int Time, int cycles, int Delay, int offset)
     digitalWrite(ActuatorHot, HIGH);  
   }
 
-//
+//Jack Implementation : Not Being Used
 void RaiseBlenderFromMiddleToTop () {
 
 digitalWrite(ActuatorNeutral, LOW);
@@ -166,7 +166,7 @@ delay(100);
 digitalWrite(ActuatorNeutral, HIGH);
 
 }
-
+//Jack Implementation : Not Being Used
 void PlungeBlenderToBottomFromTop () {
 
 digitalWrite(ActuatorHot, LOW);
@@ -197,7 +197,7 @@ void Unjam(){
    digitalWrite(ActuatorHot, HIGH);
 }
 
-//
+//Not Being Used
 void MediumPulses() {
   //make medium pulses for blender actuator (1.65 secs)
   digitalWrite(ActuatorNeutral, LOW);   // reverse actuator
@@ -244,7 +244,6 @@ void MediumPulses() {
 
 
 }
-
 //
 
 //roughly 20s for one iteration of blend process 
@@ -309,8 +308,8 @@ void Blend() {
       delay(60);
     }
     delay(1000);
-   CustomPulses(20, 12, 100, 5);  
-   CustomPulses(35, 5, 200, 10); 
+   CustomPulses(25, 12, 120, 5);  //time:20 Delay:100
+   CustomPulses(40, 5, 220, 10);  //time:40 Delay:200
    delay(1000);
    
    //Main Blend Sequence
@@ -318,8 +317,8 @@ void Blend() {
    Unjam();
    CustomPulses(120, 4, 250, -15);  
    if (MeasureDistance()  < BottomOfCup){
-      CustomPulses(20, 6, 0, 4);
-      CustomPulses(50, 5, 250, 15);   
+      CustomPulses(25, 6, 0, 4);  //time:20 
+      CustomPulses(55, 5, 250, 15);   //time:50 
     }
     delay(1500);
    }
@@ -338,7 +337,7 @@ void Blend() {
    
    delay(3000);
    
-   while(MeasureDistance()  < BottomOfCup){
+   while(MeasureDistance()  < BottomOfCup + 5){
    Unjam();
    CustomPulses(150, 5, 250, -25);  
    if (MeasureDistance()  < BottomOfCup){
@@ -346,7 +345,7 @@ void Blend() {
       CustomPulses(50, 8, 250, 20);   
     }
     delay(1500);
-   }
+   } 
    
    Unjam();
    
@@ -477,7 +476,7 @@ void Clean() {
       delay(15);
       digitalWrite(ActuatorHot, HIGH);
     }
-    while (MeasureDistance()  < BottomOfCleaning)  // check for bottom of cleaning cup
+    while (MeasureDistance()  < BottomOfCleaning + 27)  // check for bottom of cleaning cup // SA220616
     {
       digitalWrite(ActuatorHot, LOW);
       delay(15);
@@ -488,13 +487,13 @@ void Clean() {
     
     TurnBlenderOn ();
 
-    delay(1500);
+    delay(1500); 
     
     digitalWrite(pinWaterPump, LOW);
     
-    delay(1000);
+    delay(500); //1000
     Unjam();
-    while (MeasureDistance()  > CleaningLevel)  // bring blades into cleaning position
+    while (MeasureDistance()  > CleaningLevel + 20)  // bring blades into cleaning position
     {
       digitalWrite(ActuatorNeutral, LOW);
       delay(1);  
