@@ -18,7 +18,7 @@ int CleaningLevel = 350;
 
 
 int Read[15] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};  // Array to hold Actuator Portentiometer Reads
-int ValRef = 0;  // holder value for use during quicksort
+int ValRef = 0;  // holder value for use during BubbleSort
 
 const int Potentiometer = A1;    // Actuator Potentiometer Pin
 
@@ -111,13 +111,13 @@ int MeasureDistance()
     Read [i] = analogRead(Potentiometer);
     delay(1); 
   }
-  QuickSort();  // sort entries 
+  BubbleSort();  // sort entries 
   return Read[7];
   // send middle read value which is supposed to be the intended distance
 }
 
-void QuickSort ()      
-// quick sort algorithm to arrange an array of length 15 in ascending order
+void BubbleSort ()      
+// Bubble sort algorithm to arrange an array of length 15 in ascending order
 {
   for (int i = 0; i < 14; i++)
   {
@@ -156,10 +156,8 @@ void CustomPulses(int Time, int cycles, int Delay, int offset)
     digitalWrite(ActuatorHot, HIGH);  
   }
 
-
+//
 void RaiseBlenderFromMiddleToTop () {
-
-
 
 digitalWrite(ActuatorNeutral, LOW);
 
@@ -167,7 +165,6 @@ delay(100);
 
 digitalWrite(ActuatorNeutral, HIGH);
 
-  
 }
 
 void PlungeBlenderToBottomFromTop () {
@@ -178,8 +175,9 @@ delay(160);
 
 digitalWrite(ActuatorHot, HIGH);
 
-  
 }
+//
+
 void Unjam(){
 //unjam actuator if stuck
    digitalWrite(ActuatorNeutral, LOW);
@@ -198,6 +196,8 @@ void Unjam(){
    delay(25);
    digitalWrite(ActuatorHot, HIGH);
 }
+
+//
 void MediumPulses() {
   //make medium pulses for blender actuator (1.65 secs)
   digitalWrite(ActuatorNeutral, LOW);   // reverse actuator
@@ -245,7 +245,7 @@ void MediumPulses() {
 
 }
 
-
+//
 
 //roughly 20s for one iteration of blend process 
 
