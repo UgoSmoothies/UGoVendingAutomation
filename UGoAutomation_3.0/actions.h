@@ -1,6 +1,8 @@
 #ifndef ACTIONS_H
 #define ACTIONS_H
 
+// ALL OF THIS NEEDS TO BE DONE!!!
+
 #include "global.h"
 
 #define ACTION_MTP 0
