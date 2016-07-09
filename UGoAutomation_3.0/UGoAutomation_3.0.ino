@@ -1,72 +1,56 @@
+/*
+ * TODO: 
+ * LEDs not implelemted
+ * PWM on linear actuator to control speed
+ * 
+ */
+#include "global.h"
+
+#ifdef __cplusplus 
 extern "C" {
-  #include "blender.h"
+#endif
+  #include "actions.h"
+  #include "machine.h"
+#ifdef __cplusplus 
 }
+#endif
 
-#define ACTION_MTP 0
-#define ACTION_WAIT 1
-#define ACTION_ACTIVATE 2
+#ifdef USB_COMMUNICATION
+#include "usb_comm.h"
+#endif
 
-typedef struct {
-  int new_position;
-  char move_direction;
-} action_MoveToPosition;
-
-typedef struct {
-  int time_to_wait;
-} action_Wait;
-
-typedef struct {
-  char type;
-  union {
-    action_MoveToPosition mtp;
-    action_Wait wait;
-  };
-} action_t;
-
-char execute_action(action_t);
-
-action_t blend_actions[100];
-blender_t blender;
-
-typedef struct {
-  char current_step;
-  unsigned long last_step_time;
-} machine_t;
-
-machine_t machine;
+machine_t machines[NUMBER_OF_MACHINES];
 
 void setup() {
-  init_blender(&blender);
+  int i;
   
-  blend_actions[0].type = ACTION_MTP;
-  blend_actions[0].mtp.new_position = 250; // position
-  blend_actions[0].mtp.move_direction = 0;
+  blend_actions_init();
+  initializing_action_init();
   
-  blend_actions[1].type = ACTION_WAIT;
-  blend_actions[1].wait.time_to_wait = 200; //ms
+  // initialize the machine
+  for (i = 0; i < NUMBER_OF_MACHINES; i++) {
+    machine_init(&machines[i]);
+  }
+  
+  // initialize the mediator
+  mediator_init();
+
+#ifdef USB_COMMUNICATION
+  // set up the serial port for communucation
+  Serial.begin(9600);
+#endif
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  int i = 0;
+#ifdef USB_COMMUNICATION
+  // check if there are any messages to process
+  usb_communication_process();
+#endif
 
-  
-  if (execute_action(blend_actions[machine.current_step])) {
-    // we finished the last action, let's move to the next action.
-    machine.current_step++;
-    machine.last_step_time = millis();
-  }
+  // initialize the machine
+  for (i = 0; i < NUMBER_OF_MACHINES; i++) {
+    machine_check_safety_conditions(&machines[i]);
+    machine_process(&machines[i]);
+  } 
 }
-
-char execute_action(action_t action)
-{
- switch(action.type) {
-  case  ACTION_MTP:
-    return move_to_position(&blender, action.mtp.new_position, action.mtp.move_direction);
-  break;
-  case ACTION_WAIT:
-    return wait(&blender, machine.last_step_time, action.wait.time_to_wait);
-  break;
- }
-}
-
-

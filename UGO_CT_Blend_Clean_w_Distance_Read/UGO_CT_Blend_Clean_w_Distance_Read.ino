@@ -50,7 +50,7 @@ void setup() {
   //Initialization of Actuator to go DOWN and turning it OFF
   pinMode(ActuatorHot, OUTPUT);
   digitalWrite(ActuatorHot, HIGH);
-  
+
   //Initialization of Actuator to go UP
   pinMode(ActuatorNeutral, OUTPUT);
 
