@@ -35,7 +35,7 @@ const int ActuatorNeutral = 8;  //Actuator to go UP
 const int pinLED_READY = 9;     //LED -->
 const int pinLED_IN_USE = 10;   //<--Indicator
 const int pinBlender = 12; //Blender {Normal Relay}  /MOV IS USED TO PROTECT FROM ARC FROM AC MODE..
-const int pinBlenderSSR = 31; // solid state relay 
+const int pinBlenderSSR = 30; // solid state relay 
 
 const int START= 14;
 int ValButtonClean = LOW;
@@ -43,6 +43,9 @@ int ValButtonBlend = LOW;
 
 //Bubble Sort Value Initialization
 int Read[15] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};  // Array to hold Actuator Portentiometer Reads
+
+// prototypes
+void blend_2();
 
 void setup() {
 
@@ -196,6 +199,7 @@ Blend Sequence takes 49s for one iteration without fruits
 */
 void Blend(){ 
 
+  /********* BEGIN MOVING TO CUP POSITION **********/
   digitalWrite(ActuatorHot, LOW);   //Blender is going down
   
   while (MeasureDistance() < TopOfCup - 50)  // check for top of cup
@@ -206,25 +210,27 @@ void Blend(){
    while (MeasureDistance() < TopOfCup)  // check for top of cup
    {
       digitalWrite(ActuatorHot, LOW);
-      delay(15);
+      delay(75);
       digitalWrite(ActuatorHot, HIGH);
-      delay(15);
+      delay(75);
    }
     
    
    
-   while (MeasureDistance() < TopOfSmoothie + 5)   //MeasureDistance() takes about 15ms to process hence a delay is give evertime a limit is reached 
+   while (MeasureDistance() < TopOfSmoothie + 15)   //MeasureDistance() takes about 15ms to process hence a delay is give evertime a limit is reached 
    {
      digitalWrite(ActuatorHot, LOW);  
-     delay(15);
+     delay(100);
      digitalWrite(ActuatorHot, HIGH);
-     delay(45);
+     delay(100);
    }
+  /********* END MOVING TO CUP POSITION **********/
 
+  /********* BEGIN THE BLENDING CYCLE **********/
+
+   // 1. Turn the blender on
    TurnBlenderOn (); // Start the Blender 
 
-  //Slowly lowers the blender into the smoothie; Purpose is to pre-blend the fruits on the top of the cup and push in slowly
-   
    delay(1000); //Blender stays at position for 1s to blend fruits in tha region
    
    while (MeasureDistance() < TopOfSmoothie + 10)  
@@ -249,27 +255,6 @@ void Blend(){
    
    CustomPulses(40, 5, 220, 8); 
 
-      
-/*
- * Does not enter while loop
- 
-   while(MeasureDistance() < BottomOfCup - 45)
-   {  return;
-    Unjam();
-   
-    CustomPulses(120, 4, 250, -5);  
-   
-    if (MeasureDistance() < BottomOfCup)
-    {
-     
-      CustomPulses(25, 6, 0, 4);  
-      CustomPulses(55, 5, 250, 10);   
-    }
-   
-    delay(1500);
-   }
-   */
-     //Main Blend Sequence
    while(MeasureDistance() < BottomOfCup -25)
    {
      Unjam();
@@ -290,12 +275,9 @@ void Blend(){
      Unjam();
      
      CustomPulses(150, 5, 250, -25);  
-     
-    // if (MeasureDistance() < BottomOfCup)
-    // {
-       CustomPulses(10, 20, 0, 2);
-       CustomPulses(50, 8, 250, 20);   
-    // }
+     CustomPulses(10, 20, 0, 2);
+     CustomPulses(50, 8, 250, 20);   
+
      delay(1500); 
    } 
    
@@ -507,7 +489,7 @@ void loop()
       digitalWrite(pinLED_READY, LOW);
       digitalWrite(pinLED_IN_USE, HIGH);  
   
-      Blend();
+      blend_2();
     
       digitalWrite(pinLED_IN_USE, LOW);
       digitalWrite(pinLED_READY, HIGH);
@@ -515,3 +497,119 @@ void loop()
   }  
 
 }
+
+void blend_2() {
+  int i;
+  /********* BEGIN MOVING TO CUP POSITION **********/
+  
+  //Blender is going down
+  digitalWrite(ActuatorHot, LOW);   
+  
+  // check for top of cup 
+  while (MeasureDistance() < TopOfCup - 50)  {
+     delay(1);
+  }
+  
+  // check for top of cup
+  while (MeasureDistance() < TopOfCup - 10) { 
+    digitalWrite(ActuatorHot, LOW);
+    delay(30);
+    digitalWrite(ActuatorHot, HIGH);
+    delay(30);
+  }
+   //MeasureDistance() takes about 15ms to process hence a delay is give evertime a limit is reached 
+   while (MeasureDistance() < TopOfSmoothie - 5) {  
+     digitalWrite(ActuatorHot, LOW);  
+     delay(15);
+     digitalWrite(ActuatorHot, HIGH);
+     delay(45);
+   }
+  /********* END MOVING TO CUP POSITION **********/
+
+  /********* BEGIN THE BLENDING CYCLE **********/
+
+   TurnBlenderOn (); // Start the Blender 
+
+   delay(500);
+   for (i=0; i < 4; i++) {
+    while (MeasureDistance() < TopOfSmoothie + ((5*i)+5))  
+     {
+       digitalWrite(ActuatorHot, LOW);
+       delay(15);
+       digitalWrite(ActuatorHot, HIGH);
+       delay(45);
+     }
+   delay(750);
+   }
+
+  for (i=0; i < 2; i++) {
+     while (MeasureDistance() < BottomOfCup)  
+     {
+       digitalWrite(ActuatorHot, LOW);
+       delay(30);
+       digitalWrite(ActuatorHot, HIGH);
+       delay(30);
+     }
+     
+     delay(500);
+  
+      while (MeasureDistance() > TopOfSmoothie + 10)  
+      {
+        digitalWrite(ActuatorNeutral, LOW);
+        delay(30);
+        digitalWrite(ActuatorNeutral, HIGH);
+        delay(30);
+      }
+      
+     delay(500);
+  }
+
+   
+  for (i=0; i < 15; i++) {
+     while (MeasureDistance() < BottomOfCup)  
+     {
+       digitalWrite(ActuatorHot, LOW);
+       delay(30);
+       digitalWrite(ActuatorHot, HIGH);
+       delay(30);
+     }
+     
+     delay(500);
+  
+      while (MeasureDistance() > TopOfSmoothie + 5)  
+      {
+        digitalWrite(ActuatorNeutral, LOW);
+        delay(30);
+        digitalWrite(ActuatorNeutral, HIGH);
+        delay(30);
+      }
+
+     delay(500);
+  }
+
+
+  while (MeasureDistance() > TopOfSmoothie -20)  
+  {
+    digitalWrite(ActuatorNeutral, LOW);
+    delay(15);
+    digitalWrite(ActuatorNeutral, HIGH);
+    delay(60);
+  }
+  TurnBlenderOff();
+  
+  Unjam();
+
+  //Few pulses on top of the smoothie to shake some frits off
+  CustomPulses(120, 4, 500, -10);
+    
+  //Bring the blender to the TopPosition
+  digitalWrite(ActuatorNeutral, LOW);
+   
+  while (MeasureDistance()  > TopPosition)
+  {
+   delay(1);
+  }
+   
+  digitalWrite(ActuatorNeutral, HIGH); 
+}
+
