@@ -19,10 +19,10 @@
 //Distance Calibration Measurments
 int TopPosition = 358; // 312
 int TopOfCup = 525; //440
-int TopOfSmoothie= 561;//458
+int TopOfSmoothie= 550;//458
 int BottomOfCup = 610; //527
 int BottomOfCleaning = 665; // 578
-int CleaningLevel = 590; //505
+int CleaningLevel = 575; //505
 
 
 
@@ -231,7 +231,7 @@ void Blend(){
    // 1. Turn the blender on
    TurnBlenderOn (); // Start the Blender 
 
-   delay(1000); //Blender stays at position for 1s to blend fruits in tha region
+   delay(1000); //Blender stays at position for 1s to blend fruits in that region
    
    while (MeasureDistance() < TopOfSmoothie + 10)  
    {
@@ -386,7 +386,7 @@ void Clean()
 {       
    digitalWrite(ActuatorHot, LOW);  //Lower Blender 
     
-   while (MeasureDistance()  < TopOfCup)  //Lowers blender until top of cup
+   while (MeasureDistance()  < TopOfCup - 100)  //Lowers blender until top of cup
    {
      delay(1);
    }
@@ -438,14 +438,17 @@ void Clean()
    TurnBlenderOff ();  //Blender OFF 
 
    delay(1500);  //Blender off when Jets are still ON for 1.5s
-
-
    
    digitalWrite(pinWaterPump, HIGH);  //Turns water pump OFF
 
+   while (MeasureDistance()  > TopOfCup + 20)  //Positions the blades to where the side nozzles shoots the water at
+   {
+     digitalWrite(ActuatorNeutral, LOW);
+     delay(1);  
+   }
      
-   
-   CustomPulses(75, 3, 15, 0);
+  //Few pulses on top of the cup to shake some remaining water
+  CustomPulse_2(120, 3, 400);
 
    digitalWrite(ActuatorNeutral, LOW);
    
@@ -456,8 +459,6 @@ void Clean()
    
    digitalWrite(ActuatorNeutral, HIGH);
 }
-
-
 
 void loop() 
 {
@@ -471,7 +472,7 @@ void loop()
       digitalWrite(pinLED_READY, LOW);
       digitalWrite(pinLED_IN_USE, HIGH); 
   
-      Clean();
+      Clean(); //Time: 00:11:05
 
       
       digitalWrite(pinLED_IN_USE, LOW);
@@ -489,8 +490,8 @@ void loop()
       digitalWrite(pinLED_READY, LOW);
       digitalWrite(pinLED_IN_USE, HIGH);  
   
-      blend_2();
-    
+      blend_2(); //Time: 01:10:00 
+     
       digitalWrite(pinLED_IN_USE, LOW);
       digitalWrite(pinLED_READY, HIGH);
     }  
@@ -499,6 +500,7 @@ void loop()
 }
 
 void blend_2() {
+  
   int i;
   /********* BEGIN MOVING TO CUP POSITION **********/
   
@@ -506,19 +508,23 @@ void blend_2() {
   digitalWrite(ActuatorHot, LOW);   
   
   // check for top of cup 
-  while (MeasureDistance() < TopOfCup - 50)  {
+  while (MeasureDistance() < TopOfCup - 100)  
+  {
      delay(1);
   }
   
   // check for top of cup
-  while (MeasureDistance() < TopOfCup - 10) { 
+  while (MeasureDistance() < TopOfCup - 10) 
+  { 
     digitalWrite(ActuatorHot, LOW);
     delay(30);
     digitalWrite(ActuatorHot, HIGH);
     delay(30);
   }
+  
    //MeasureDistance() takes about 15ms to process hence a delay is give evertime a limit is reached 
-   while (MeasureDistance() < TopOfSmoothie - 5) {  
+   while (MeasureDistance() < TopOfSmoothie - 5) 
+   {  
      digitalWrite(ActuatorHot, LOW);  
      delay(15);
      digitalWrite(ActuatorHot, HIGH);
@@ -531,18 +537,21 @@ void blend_2() {
    TurnBlenderOn (); // Start the Blender 
 
    delay(500);
-   for (i=0; i < 4; i++) {
-    while (MeasureDistance() < TopOfSmoothie + ((5*i)+5))  
-     {
-       digitalWrite(ActuatorHot, LOW);
-       delay(15);
-       digitalWrite(ActuatorHot, HIGH);
-       delay(45);
-     }
-   delay(750);
+   
+   for (i=0; i < 4; i++) 
+   {
+      while (MeasureDistance() < TopOfSmoothie + ((5*i)+5))  
+      {
+         digitalWrite(ActuatorHot, LOW);
+         delay(15);
+         digitalWrite(ActuatorHot, HIGH);
+         delay(45);
+      }
+      delay(750);
    }
 
-  for (i=0; i < 2; i++) {
+  for (i=0; i < 2; i++) 
+  {
      while (MeasureDistance() < BottomOfCup)  
      {
        digitalWrite(ActuatorHot, LOW);
@@ -553,19 +562,20 @@ void blend_2() {
      
      delay(500);
   
-      while (MeasureDistance() > TopOfSmoothie + 10)  
-      {
+     while (MeasureDistance() > TopOfSmoothie + 10)  
+     {
         digitalWrite(ActuatorNeutral, LOW);
         delay(30);
         digitalWrite(ActuatorNeutral, HIGH);
         delay(30);
-      }
+     }
       
      delay(500);
   }
 
    
-  for (i=0; i < 15; i++) {
+  for (i=0; i < 15; i++) 
+  {
      while (MeasureDistance() < BottomOfCup)  
      {
        digitalWrite(ActuatorHot, LOW);
@@ -576,13 +586,13 @@ void blend_2() {
      
      delay(500);
   
-      while (MeasureDistance() > TopOfSmoothie + 5)  
-      {
+     while (MeasureDistance() > TopOfSmoothie + 5)  
+     {
         digitalWrite(ActuatorNeutral, LOW);
         delay(30);
         digitalWrite(ActuatorNeutral, HIGH);
         delay(30);
-      }
+     }
 
      delay(500);
   }
@@ -595,12 +605,23 @@ void blend_2() {
     digitalWrite(ActuatorNeutral, HIGH);
     delay(60);
   }
+
+  delay(3000); 
+  
   TurnBlenderOff();
+
+  while (MeasureDistance() > TopOfSmoothie - 40)  
+  {
+    digitalWrite(ActuatorNeutral, LOW);
+    delay(15);
+    digitalWrite(ActuatorNeutral, HIGH);
+    delay(60);
+  }
   
   Unjam();
 
   //Few pulses on top of the smoothie to shake some frits off
-  CustomPulses(120, 4, 500, -10);
+  CustomPulse_2(120, 4, 500);
     
   //Bring the blender to the TopPosition
   digitalWrite(ActuatorNeutral, LOW);
@@ -612,4 +633,29 @@ void blend_2() {
    
   digitalWrite(ActuatorNeutral, HIGH); 
 }
+
+void CustomPulse_2(int Time, int cycles, int Delay)
+{
+  digitalWrite(ActuatorNeutral, HIGH);  
+  digitalWrite(ActuatorHot, HIGH);  
+  
+  for(int i = 0; i < cycles; i++)
+  {
+    digitalWrite(ActuatorHot, LOW);       //Plunge DOWN Shortly
+    delay (Time);
+    digitalWrite(ActuatorHot, HIGH);
+  
+    delay(Delay - 300);
+  
+    digitalWrite(ActuatorNeutral, LOW);     //Plunge UP Longer
+    delay (Time);
+    digitalWrite(ActuatorNeutral, HIGH);
+  
+    delay(Delay);
+  }
+  
+  digitalWrite(ActuatorNeutral, HIGH);  
+  digitalWrite(ActuatorHot, HIGH);  
+}
+
 
