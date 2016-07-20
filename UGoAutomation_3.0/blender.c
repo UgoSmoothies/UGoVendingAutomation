@@ -5,83 +5,54 @@ void blender_init(blender_t* blender){
   blender->movement = BLENDER_MOVEMENT_IDLE;  
   blender->blade = BLENDER_OFF;
   blender->water_pump = PUMP_OFF;
-  blender->actuator_up_address = 8;
-  blender->actuator_down_address = 7;
-  blender->blender_ssr_address = 31;
-  blender->blender_mech_address = 12;
-  blender->water_pump_address = 6; 
+  blender->actuator_up_address = 5;
+  blender->actuator_down_address = 6;
+  blender->blender_ssr_address = BLENDER_ADDRESS;
+  blender->water_pump_address = PUMP_ADDRESS; 
   blender->encoder_address = A1;
 
   pinMode(blender->actuator_up_address, OUTPUT);
   pinMode(blender->actuator_down_address, OUTPUT);
   pinMode(blender->blender_ssr_address, OUTPUT);
-  pinMode(blender->blender_mech_address, OUTPUT);
   pinMode(blender->water_pump_address, OUTPUT);
 }
 
-void blender_move(blender_t* blender, char direction){
+void blender_move(blender_t* blender, char direction, char speed){
   blender->movement = direction;
   
   switch (direction) {
     case BLENDER_MOVEMENT_DOWN:
-      digitalWrite(blender->actuator_down_address, LOW);   
-      digitalWrite(blender->actuator_up_address, HIGH);
+      analogWrite(blender->actuator_down_address, 0);   
+      analogWrite(blender->actuator_up_address, speed);
     break;
     case BLENDER_MOVEMENT_UP:
-      digitalWrite(blender->actuator_up_address, LOW);
-      digitalWrite(blender->actuator_down_address, HIGH);
+      digitalWrite(blender->actuator_up_address, 0);
+      digitalWrite(blender->actuator_down_address, speed);
     break;
     case BLENDER_MOVEMENT_IDLE:
-      digitalWrite(blender->actuator_up_address, HIGH);
-      digitalWrite(blender->actuator_down_address, HIGH);
+      digitalWrite(blender->actuator_up_address, 0);
+      digitalWrite(blender->actuator_down_address, 0);
     break;
   }
-}
-
-void blender_on(blender_t* blender){
-   digitalWrite(blender->blender_ssr_address, HIGH);
-   delay(20);
-   digitalWrite(blender->blender_mech_address, LOW);
-   
-   blender->blade = BLENDER_ON;
-}
-void blender_off(blender_t* blender){
-   digitalWrite(blender->blender_ssr_address, LOW);
-   delay(20);
-   digitalWrite(blender->blender_mech_address, HIGH);
-   
-   blender->blade = BLENDER_OFF;
-}
-
-void pump_on(blender_t* blender){
-   digitalWrite(blender->water_pump_address, LOW);
-   blender->water_pump = PUMP_ON;
-}
-
-void pump_off(blender_t* blender){
-   digitalWrite(blender->water_pump_address, HIGH);
-   blender->water_pump = PUMP_OFF;
 }
 
 void update_current_position(blender_t* blender) {
   blender->position = analogRead(blender->encoder_address);
 }
 
-
-
 char move_to_position(blender_t* blender, action_move_to_position_t* action_move_to_position) {
   update_current_position(blender);
 
   // make sure we are actually moving
   if (blender->movement != action_move_to_position->move_direction) {
-    blender_move(blender, action_move_to_position->move_direction);
+    blender_move(blender, action_move_to_position->move_direction, action_move_to_position->speed);
   }
   
   switch (action_move_to_position->move_direction) {
     case BLENDER_MOVEMENT_DOWN:
       if(blender->position >= action_move_to_position->new_position) {
         // destination reached
-        blender_move(blender, BLENDER_MOVEMENT_IDLE);
+        blender_move(blender, BLENDER_MOVEMENT_IDLE, 0);
         return true;
       } else {
         // destination not reached
@@ -91,7 +62,7 @@ char move_to_position(blender_t* blender, action_move_to_position_t* action_move
     case BLENDER_MOVEMENT_UP:
       if(blender->position <= action_move_to_position->new_position) {
         // destination reached
-        blender_move(blender, BLENDER_MOVEMENT_IDLE);
+        blender_move(blender, BLENDER_MOVEMENT_IDLE, 0);
         return true;
       } else {
         // destination not reached
@@ -100,7 +71,7 @@ char move_to_position(blender_t* blender, action_move_to_position_t* action_move
     break;
     default:
       // error
-        blender_move(blender, BLENDER_MOVEMENT_IDLE);
+        blender_move(blender, BLENDER_MOVEMENT_IDLE, 0);
       return true; 
     break;
   }
@@ -111,6 +82,7 @@ char wait(blender_t* blender, unsigned long start_wait_time, action_wait_t* acti
 }
 
 char activate(blender_t* blender, action_activate_t* action_activate) {
+    digitalWrite(action_activate->address, action_activate->state);
     return 1;
 }
 

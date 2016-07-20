@@ -14,6 +14,9 @@
 #define PUMP_ON 1
 #define PUMP_OFF 0
 
+#define BLENDER_ADDRESS 9
+#define PUMP_ADDRESS 10
+
 typedef struct{
   int position;
   char movement;  
@@ -22,17 +25,12 @@ typedef struct{
   int actuator_up_address;
   int actuator_down_address;
   int blender_ssr_address;
-  int blender_mech_address;
   int water_pump_address;
   int encoder_address; 
-}blender_t;
+} blender_t;
 
 void blender_init(blender_t*);
-void blender_move(blender_t*, char);
-void blender_on(blender_t*);
-void blender_off(blender_t*);
-void pump_on(blender_t*);
-void pump_off(blender_t*);
+void blender_move(blender_t*, char, char);
 void update_current_position(blender_t*);
 
 char move_to_position(blender_t*, action_move_to_position_t*);

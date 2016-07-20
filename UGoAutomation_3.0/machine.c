@@ -9,6 +9,28 @@
   - A blender
   - Input buttons
 
+  NOTE: When implementing multiple machines, address
+  changes will be needed, for now the addresses are:
+
+  **** INPUTS ****
+  1 - BLEND BUTTON
+  2 - CLEAN BUTTON
+  3 - STOP BUTTON
+  4 - STEP BUTTON
+  11 - LED READY
+  12 - LED IN USE
+  A1 - MOTOR POTENTIOMETER
+
+  **** OUTPUTS ****
+  5 - MOTOR FORWARD
+  6 - MOTOR REVERSE
+  7 - FORWARD ENABLED
+  8 - REVERSE ENABLED
+  9 - BLENDER
+  10 - PUMP
+
+  TODO: Implement stepping
+
   SM070716
 ***************************************************/
 #include "machine.h"
@@ -22,10 +44,10 @@ void machine_init(machine_t* machine_ptr) {
 
   blend_actions_init();
 
-  input_button_init(&machine_ptr->buttons[BLEND_BUTTON], 2);
-  input_button_init(&machine_ptr->buttons[CLEAN_BUTTON], 3);
-  input_button_init(&machine_ptr->buttons[STOP_BUTTON], 4); // NOT IMPLIMENTED
-  input_button_init(&machine_ptr->buttons[STEP_BUTTON], 5); // NOT IMPLIMENTED
+  input_button_init(&machine_ptr->buttons[BLEND_BUTTON], 1);
+  input_button_init(&machine_ptr->buttons[CLEAN_BUTTON], 2);
+  input_button_init(&machine_ptr->buttons[STOP_BUTTON], 3); // NOT IMPLIMENTED
+  input_button_init(&machine_ptr->buttons[STEP_BUTTON], 4); // NOT IMPLIMENTED
 }
 
 void machine_process(machine_t* machine_ptr) {
@@ -58,10 +80,12 @@ void machine_process(machine_t* machine_ptr) {
     case MACHINE_STATE_BLENDING:
       if (machine_execute_action(machine_ptr, blend_sequence.actions_ptr[machine_ptr->current_step])) {
         // we finished the last action, let's move to the next action.
+        LOG_PRINT(LOGGER_INFO, "Bending step %d completed, percent complete:%d", machine_ptr->current_step, (100*machine_ptr->current_step)/blend_sequence.total_actions);
+        
         machine_ptr->current_step++;
         machine_ptr->last_step_time = millis();
 
-        if (machine_ptr->current_step == blend_sequence.total_actions) { // TODO: replace 2 with total_step_count
+        if (machine_ptr->current_step == blend_sequence.total_actions) {
           machine_ptr->current_state = MACHINE_STATE_IDLE;
         }
       }
@@ -72,7 +96,7 @@ void machine_process(machine_t* machine_ptr) {
         machine_ptr->current_step++;
         machine_ptr->last_step_time = millis();
 
-        if (machine_ptr->current_step == clean_sequence.total_actions) { // TODO: replace 2 with total_step_count
+        if (machine_ptr->current_step == clean_sequence.total_actions) {
           machine_ptr->current_state = MACHINE_STATE_IDLE;
         }
       }

@@ -1,13 +1,17 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include "Arduino.h"
+#pragma GCC diagnostic ignored "-Wwrite-strings"
 
+#include "Arduino.h"
+#include <stdio.h>
+    
 ////#define USB_COMMUNICATION
 
 #ifdef __cplusplus 
 extern "C" {
 #endif
+  #include "logger.h"
   #include "mediator.h"
 #ifdef __cplusplus 
 }
@@ -26,6 +30,9 @@ extern "C" {
 
 #define MACHINE_CYCLE_TYPE_AUTO 0
 #define MACHINE_CYCLE_TYPE_STEP 1
+
+#define ON HIGH
+#define OFF LOW
 
 //Distance Calibration Measurments
 #define TOP_POSITION 145

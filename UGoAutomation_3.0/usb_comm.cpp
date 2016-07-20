@@ -284,4 +284,6 @@ void usb_communication_send_message(hmi_message_t msgToSend, unsigned int len) {
   // END OF FRAME
   hmi_out_buffer[i++] = 0x7F; // EOF
   hmi_out_buffer[i++] = 0x55; // EOF
+
+  Serial.write(hmi_out_buffer, i);
 }

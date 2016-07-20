@@ -1,7 +1,6 @@
 /*
  * TODO: 
  * LEDs not implelemted
- * PWM on linear actuator to control speed
  * 
  */
 #include "global.h"
@@ -39,6 +38,11 @@ void setup() {
   // set up the serial port for communucation
   Serial.begin(9600);
 #endif
+
+  // For the time being, explicitly initialize the machine
+  machines[0].current_state = MACHINE_STATE_INITIALIZING;
+
+  LOG_PRINT(LOGGER_INFO, "Setup complete");
 }
 
 void loop() {

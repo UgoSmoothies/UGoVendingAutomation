@@ -1,8 +1,6 @@
 #ifndef ACTIONS_H
 #define ACTIONS_H
 
-// ALL OF THIS NEEDS TO BE DONE!!!
-
 #include "global.h"
 
 #define ACTION_MTP 0
@@ -10,11 +8,17 @@
 #define ACTION_ACTIVATE 2
 #define ACTION_AGITATE 3
 
+#define MOTOR_SPEED_FULL 0xFF
+#define MOTOR_SPEED_HALF (MOTOR_SPEED_FULL / 2)
+#define MOTOR_SPEED_OFF 0x00
+
 typedef struct {
   /* The new position to move to */
   int new_position;
   /* The direction to move */
   char move_direction;
+  /* The speed of the motor (0 -255) */
+  char speed;
 } action_move_to_position_t;
 
 typedef struct {
@@ -24,11 +28,12 @@ typedef struct {
 
 typedef struct {
   /* What to change */
-  char item;
+  char address;
   /* On or off */
   char state; // 0:OFF; 1:ON;
 } action_activate_t;
 
+// TODO: This needs to change when there is more than 1 machine
 typedef struct {
   /* how many units to raise */
   char rising_distance;

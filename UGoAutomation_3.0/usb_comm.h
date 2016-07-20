@@ -13,6 +13,7 @@
 #define MSG_GET_SENSOR_STATE      0x0005
 #define MSG_GET_ACTUATOR_STATE    0x0006
 #define MSG_SANITIZE_BLENDER      0x0007
+#define MSG_LOG                   0x0008
 
 #define MAX_HMI_PAYLOAD_SIZE 200
 
@@ -20,6 +21,11 @@
 #define CRC_INIT 0xFFFF
 #define CRC(crcval,newchar) crcval = (crcval >> 8) ^ \
                                      crc_table[(crcval ^ newchar) & 0x00ff]
+
+typedef struct __attribute__((__packed__, aligned(1))) {
+    char level;
+    char message[200];
+} log_message_t;
 
 typedef struct {
   char protien;
@@ -42,6 +48,7 @@ typedef struct {
     char payload[MAX_HMI_PAYLOAD_SIZE];
     auto_cycle_t auto_cycle;
     firmware_t firmware;
+    log_message_t log_message;
   };
 } hmi_message_t;
 
