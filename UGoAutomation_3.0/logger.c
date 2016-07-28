@@ -112,14 +112,12 @@ void log_print(char* filename, int line, enum LOGGER_LEVEL level, char *fmt, ...
     
     va_end( list );
 
-#ifdef HMI_COMMUNICATION
     hmi_message_t msg;
     msg.message_id = MSG_LOG;
     msg.log_message.level = level;
     memset(&msg.log_message.message, 0, sizeof(msg.log_message.message));
     memcpy(&msg.log_message.message, &log_builder, i);
-    usb_communication_send_message(msg, sizeof(msg.log_message) - (200 - i));
-#endif
+    c_send_message(msg, sizeof(msg.log_message) - (200 - i));
 
     while (level == LOGGER_ASSERT) {}
   }

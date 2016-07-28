@@ -66,9 +66,16 @@ void machine_process(machine_t* machine_ptr) {
     }
   }
 
-  if (&machine_ptr->buttons[STOP_BUTTON].current_state) {
+  if (machine_ptr->buttons[STOP_BUTTON].current_state) {
     machine_ptr->current_state = MACHINE_STATE_IDLE;
   }
+
+  LOG_PRINT(LOGGER_INFO, "Machine Current State: %d - Button States: B%d C%d S%d - Motor Position: %d", 
+    machine_ptr->current_state,
+    machine_ptr->buttons[BLEND_BUTTON].current_state,
+    machine_ptr->buttons[CLEAN_BUTTON].current_state,
+    machine_ptr->buttons[STOP_BUTTON].current_state,
+    machine_ptr->blender.position);
 
   // ---------- END INPUT BUTTON SECTION ----------
 
@@ -78,9 +85,9 @@ void machine_process(machine_t* machine_ptr) {
       machine_ptr->current_step = 0;
       break;
     case MACHINE_STATE_BLENDING:
-      if (machine_execute_action(machine_ptr, blend_sequence.actions_ptr[machine_ptr->current_step])) {
+      if (machine_execute_action(machine_ptr, &blend_sequence.actions_ptr[machine_ptr->current_step])) {
         // we finished the last action, let's move to the next action.
-        LOG_PRINT(LOGGER_INFO, "Bending step %d completed, percent complete:%d", machine_ptr->current_step, (100*machine_ptr->current_step)/blend_sequence.total_actions);
+        LOG_PRINT(LOGGER_VERBOSE, "Bending step %d completed, percent complete:%d", machine_ptr->current_step, (100*machine_ptr->current_step)/blend_sequence.total_actions);
         
         machine_ptr->current_step++;
         machine_ptr->last_step_time = millis();
@@ -91,7 +98,7 @@ void machine_process(machine_t* machine_ptr) {
       }
       break;
     case MACHINE_STATE_CLEANING:
-      if (machine_execute_action(machine_ptr, clean_sequence.actions_ptr[machine_ptr->current_step])) {
+      if (machine_execute_action(machine_ptr, &clean_sequence.actions_ptr[machine_ptr->current_step])) {
         // we finished the last action, let's move to the next action.
         machine_ptr->current_step++;
         machine_ptr->last_step_time = millis();
@@ -102,7 +109,7 @@ void machine_process(machine_t* machine_ptr) {
       }
       break;
     case MACHINE_STATE_INITIALIZING:
-      if (machine_execute_action(machine_ptr, initializing_action)) {
+      if (machine_execute_action(machine_ptr, &initializing_action)) {
         machine_ptr->current_state = MACHINE_STATE_IDLE;
         machine_ptr->is_initialized = 1;
       }
@@ -110,19 +117,19 @@ void machine_process(machine_t* machine_ptr) {
   }
 }
 
-char machine_execute_action(machine_t* machine_ptr, action_t action) {
-  switch (action.type) {
+char machine_execute_action(machine_t* machine_ptr, action_t* action) {
+  switch (action->type) {
     case  ACTION_MTP:
-      return move_to_position(&machine_ptr->blender, &action.mtp);
+      return move_to_position(&machine_ptr->blender, &action->mtp);
       break;
     case ACTION_WAIT:
-      return wait(&machine_ptr->blender, machine_ptr->last_step_time, &action.wait);
+      return wait(&machine_ptr->blender, machine_ptr->last_step_time, &action->wait);
       break;
     case ACTION_ACTIVATE:
-      return activate(&machine_ptr->blender, &action.activate);
+      return activate(&machine_ptr->blender, &action->activate);
       break;
     case ACTION_AGITATE:
-      return agitate(&machine_ptr->blender, &action.agitate);
+      return agitate(&machine_ptr->blender, &action->agitate);
   }
 
   // error...
@@ -134,4 +141,3 @@ char machine_check_safety_conditions(machine_t* machine_prt) {
   // TODO
   return 1;
 }
-

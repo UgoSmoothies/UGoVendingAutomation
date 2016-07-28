@@ -140,8 +140,6 @@ RETURN VALUE: 0
 SM070716
 END DESCRIPTION ***********************************/
 int usb_communication_process() {
-  hmi_message_t replyMessage;
-  
   // read the incoming serial data  
   while (Serial.available() && current_bytes_read < sizeof(hmi_in_buffer)) {
     hmi_in_buffer[current_bytes_read++] = Serial.read();
@@ -171,36 +169,9 @@ int usb_communication_process() {
               if (crcverify(((unsigned char*)&hmi_in_buffer), len - 2)) {
 #else
               if (true) {
-#endif             
+#endif          
                 int message_id = (hmi_in_buffer[7] << 8) + (hmi_in_buffer[6] & 0xFF);
-                switch (message_id) {
-                  case MSG_AUTO_CYCLE:
-                    mediator_send_message(MEDIATOR_AUTO_CYCLE_START, (char*)"");
-                    usb_communication_send_message(replyMessage, sizeof(replyMessage.auto_cycle));
-                    return 1;
-                  break;
-          
-                  case MSG_MACHINE_ERROR:// this is outgoing message, not incoming!
-                  break;
-          
-                  case MSG_GET_FIRMWARE_VERSION:
-                    usb_commuication_create_default_message(MSG_GET_FIRMWARE_VERSION, &replyMessage);
-                    replyMessage.firmware.major = FIRMWARE_VERSION_MAJOR;
-                    replyMessage.firmware.minor = FIRMWARE_VERSION_MINOR;
-                  break;
-          
-                  case MSG_GET_SENSOR_STATE:
-                  break;
-          
-                  case MSG_GET_ACTUATOR_STATE:
-                  break;
-
-                  case MSG_SANITIZE_BLENDER:
-                    break;
-                  default:
-                    // NOT IMPLEMENTED YET!
-                  break;
-                }
+                usb_communication_parse_message(message_id, hmi_in_buffer);
                 current_bytes_read = 0;
               } else {
               // CRC FAILED!!! should send error message
@@ -286,4 +257,43 @@ void usb_communication_send_message(hmi_message_t msgToSend, unsigned int len) {
   hmi_out_buffer[i++] = 0x55; // EOF
 
   Serial.write(hmi_out_buffer, i);
+  Serial.write("\n");
 }
+
+void usb_communication_parse_message(short message_id, char* buffer){
+  hmi_message_t replyMessage;
+    
+  switch (message_id) {
+    case MSG_AUTO_CYCLE:
+      mediator_send_message(MEDIATOR_AUTO_CYCLE_START, (char*)"");
+      usb_communication_send_message(replyMessage, sizeof(replyMessage.auto_cycle));
+    break;
+  
+    case MSG_MACHINE_ERROR:// this is outgoing message, not incoming!
+    break;
+  
+    case MSG_GET_FIRMWARE_VERSION:
+      usb_commuication_create_default_message(MSG_GET_FIRMWARE_VERSION, &replyMessage);
+      replyMessage.firmware.major = FIRMWARE_VERSION_MAJOR;
+      replyMessage.firmware.minor = FIRMWARE_VERSION_MINOR;
+    break;
+  
+    case MSG_GET_SENSOR_STATE:
+    break;
+  
+    case MSG_GET_ACTUATOR_STATE:
+    break;
+  
+    case MSG_SANITIZE_BLENDER:
+      break;
+    default:
+      // NOT IMPLEMENTED YET!
+    break;
+  }
+  
+}
+
+void c_send_message(hmi_message_t msg, unsigned int size) {
+  usb_communication_send_message(msg, size);
+}
+

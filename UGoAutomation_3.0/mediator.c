@@ -114,10 +114,12 @@ SM040716
 END DESCRIPTION ***********************************/
 void mediator_send_message(int event_id, char* message)
 {
+  LOG_PRINT(LOGGER_VERBOSE, "Executing event id: %d , total actions: %d", event_id, callbacks[event_id].total_actions); 
     int i;
     
     for (i = 0; i < callbacks[event_id].total_actions; i++)
     {
+      LOG_PRINT(LOGGER_VERBOSE, "raising action");
         callbacks[event_id].actions[i](message);
     }
 }
