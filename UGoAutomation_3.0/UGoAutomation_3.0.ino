@@ -31,8 +31,8 @@ void setup() {
   Serial.begin(9600);
 #endif
 
+  // initialize the patterns
   blend_actions_init();
-
   initializing_action_init();
  
   // initialize the machine
@@ -43,6 +43,7 @@ void setup() {
   // initialize the mediator
   mediator_init();
 
+  // initialize the logger
   logger_init();
 
   // For the time being, explicitly initialize the machine
@@ -52,7 +53,6 @@ void setup() {
 
   LOG_PRINT(LOGGER_INFO, "Setup complete");
 
-  
   start_time = millis();
 }
 

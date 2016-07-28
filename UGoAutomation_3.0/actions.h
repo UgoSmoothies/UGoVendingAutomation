@@ -21,6 +21,8 @@ typedef struct {
   char move_direction;
   /* The speed of the motor (0 -255) */
   char speed;
+  /* If the movement has not completed by the timeout move on */
+  int time_out;
 } action_move_to_position_t;
 
 typedef struct {

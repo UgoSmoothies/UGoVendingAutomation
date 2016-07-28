@@ -119,7 +119,6 @@ void mediator_send_message(int event_id, char* message)
     
     for (i = 0; i < callbacks[event_id].total_actions; i++)
     {
-      LOG_PRINT(LOGGER_VERBOSE, "raising action");
         callbacks[event_id].actions[i](message);
     }
 }

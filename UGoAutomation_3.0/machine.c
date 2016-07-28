@@ -60,13 +60,16 @@ void machine_process(machine_t* machine_ptr) {
 
   if (machine_ptr->current_state == MACHINE_STATE_IDLE) {
     if (machine_ptr->buttons[BLEND_BUTTON].current_state) {
+      LOG_PRINT(LOGGER_VERBOSE, "Blender button pushed, starting blending");
       machine_ptr->current_state = MACHINE_STATE_BLENDING;
     } else if (machine_ptr->buttons[CLEAN_BUTTON].current_state) {
+      LOG_PRINT(LOGGER_VERBOSE, "Cleaning button pushed, starting cleaning");
       machine_ptr->current_state = MACHINE_STATE_CLEANING;
     }
   }
 
   if (machine_ptr->buttons[STOP_BUTTON].current_state) {
+      LOG_PRINT(LOGGER_VERBOSE, "Stop button pushed, stopping machine");
     machine_ptr->current_state = MACHINE_STATE_IDLE;
   }
 
@@ -93,6 +96,7 @@ void machine_process(machine_t* machine_ptr) {
         machine_ptr->last_step_time = millis();
 
         if (machine_ptr->current_step == blend_sequence.total_actions) {
+          LOG_PRINT(LOGGER_VERBOSE, "Blending complete, stopping machine");
           machine_ptr->current_state = MACHINE_STATE_IDLE;
         }
       }
@@ -120,7 +124,7 @@ void machine_process(machine_t* machine_ptr) {
 char machine_execute_action(machine_t* machine_ptr, action_t* action) {
   switch (action->type) {
     case  ACTION_MTP:
-      return move_to_position(&machine_ptr->blender, &action->mtp);
+      return move_to_position(&machine_ptr->blender, machine_ptr->last_step_time, &action->mtp);
       break;
     case ACTION_WAIT:
       return wait(&machine_ptr->blender, machine_ptr->last_step_time, &action->wait);
@@ -133,6 +137,7 @@ char machine_execute_action(machine_t* machine_ptr, action_t* action) {
   }
 
   // error...
+  LOG_PRINT(LOGGER_WARNING, "machine_execute_action - invalid action type: %d", action->type);
   return 0;
 }
 
