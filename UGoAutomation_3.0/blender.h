@@ -27,13 +27,15 @@ typedef struct{
   int blender_ssr_address;
   int water_pump_address;
   int encoder_address; 
+  int actuator_up_enabled_address;
+  int actuator_down_enabled_address;
 } blender_t;
 
 void blender_init(blender_t*);
 void blender_move(blender_t*, char, char);
 void update_current_position(blender_t*);
 
-char move_to_position(blender_t*, action_move_to_position_t*);
+char move_to_position(blender_t*, unsigned long, action_move_to_position_t*);
 char wait(blender_t*, unsigned long, action_wait_t*);
 char activate(blender_t*, action_activate_t*);
 char agitate(blender_t*, action_agitate_t*);

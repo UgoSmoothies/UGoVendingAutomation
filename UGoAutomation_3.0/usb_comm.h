@@ -27,18 +27,18 @@ typedef struct __attribute__((__packed__, aligned(1))) {
     char message[200];
 } log_message_t;
 
-typedef struct {
+typedef struct  __attribute__((__packed__, aligned(1))) {
   char protien;
   char liquid;
 } auto_cycle_t;
 
-typedef struct {
+typedef struct  __attribute__((__packed__, aligned(1))) {
   short major;
   short minor;
   short revision;
 } firmware_t;
 
-typedef struct {
+typedef struct  __attribute__((__packed__, aligned(1))) {
   short start_of_frame;
   short len;
   char src;
@@ -54,6 +54,15 @@ typedef struct {
 
 int usb_communication_process();
 void usb_communication_send_message(hmi_message_t, unsigned int);
-void usb_commuication_create_default_message(short, hmi_message_t*);
+void usb_communication_create_default_message(short, hmi_message_t*);
+void usb_communication_parse_message(short, char*);
+
+#ifdef __cplusplus 
+extern "C" {
+#endif
+void c_send_message(hmi_message_t msg, unsigned int size);
+#ifdef __cplusplus 
+}
+#endif
 
 #endif

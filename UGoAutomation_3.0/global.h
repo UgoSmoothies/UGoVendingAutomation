@@ -6,7 +6,7 @@
 #include "Arduino.h"
 #include <stdio.h>
     
-////#define USB_COMMUNICATION
+#define USB_COMMUNICATION
 
 #ifdef __cplusplus 
 extern "C" {

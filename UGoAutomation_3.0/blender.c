@@ -10,11 +10,20 @@ void blender_init(blender_t* blender){
   blender->blender_ssr_address = BLENDER_ADDRESS;
   blender->water_pump_address = PUMP_ADDRESS; 
   blender->encoder_address = A1;
+  blender->actuator_up_enabled_address = 7;
+  blender->actuator_down_enabled_address = 8;
 
   pinMode(blender->actuator_up_address, OUTPUT);
   pinMode(blender->actuator_down_address, OUTPUT);
   pinMode(blender->blender_ssr_address, OUTPUT);
   pinMode(blender->water_pump_address, OUTPUT);
+  pinMode(blender->actuator_up_enabled_address, OUTPUT);
+  pinMode(blender->actuator_down_enabled_address, OUTPUT);
+
+  // for now we are going to activate motor enabled. later on we
+  // will check safety and activated as needed
+  digitalWrite(blender->actuator_up_enabled_address, ON);
+  digitalWrite(blender->actuator_down_enabled_address, ON);
 }
 
 void blender_move(blender_t* blender, char direction, char speed){
@@ -40,12 +49,19 @@ void update_current_position(blender_t* blender) {
   blender->position = analogRead(blender->encoder_address);
 }
 
-char move_to_position(blender_t* blender, action_move_to_position_t* action_move_to_position) {
+char move_to_position(blender_t* blender, unsigned long start_time, action_move_to_position_t* action_move_to_position) {
   update_current_position(blender);
 
   // make sure we are actually moving
   if (blender->movement != action_move_to_position->move_direction) {
+    LOG_PRINT(LOGGER_VERBOSE, "Activating the motor to move %s", action_move_to_position->move_direction == BLENDER_MOVEMENT_DOWN ? "down" : "up");
     blender_move(blender, action_move_to_position->move_direction, action_move_to_position->speed);
+  }
+
+  // add a timeout in case it gets jammed
+  if (start_time + action_move_to_position->time_out < millis()) {
+    LOG_PRINT(LOGGER_VERBOSE, "Movement timeout");
+    return true;
   }
   
   switch (action_move_to_position->move_direction) {
@@ -108,7 +124,7 @@ char agitate(blender_t* blender_ptr, action_agitate_t* action_agitate) {
     action_move_to_position_ptr->move_direction = BLENDER_MOVEMENT_UP;
   }
 
-  if (move_to_position(blender_ptr, action_move_to_position_ptr)) {
+  if (move_to_position(blender_ptr, millis(), action_move_to_position_ptr)) {
     // we are in the right position
     action_agitate->start_position = blender_ptr->position;
     

@@ -27,8 +27,9 @@ void machine_init(machine_t*);
 void machine_process(machine_t*);
 void machine_change_state(machine_t*);
 
-char machine_execute_action(machine_t*, action_t);
+char machine_execute_action(machine_t*, action_t*);
 
 char machine_check_safety_conditions(machine_t*);
+
 #endif
 
