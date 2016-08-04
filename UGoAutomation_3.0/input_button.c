@@ -14,6 +14,7 @@ void input_button_read(input_button_t* input) {
 
   if (reading != input->last_state) {
     input->last_debounce_time = millis();
+    LOG_PRINT(LOGGER_VERBOSE, "CHANGED STATE");
   }
 
   if ((millis() - input->last_debounce_time) > DEBOUNCING_TIME) {

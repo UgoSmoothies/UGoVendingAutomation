@@ -54,6 +54,7 @@ void setup() {
   LOG_PRINT(LOGGER_INFO, "Setup complete");
 
   start_time = millis();
+  machines[0].last_step_time = millis();
 }
 
 void loop() {
@@ -69,11 +70,11 @@ void loop() {
     machine_process(&machines[i]);
   } 
 
-  if (start_time + 5000 < millis()) {
-    LOG_PRINT(LOGGER_VERBOSE, "5 second test");    
-    start_time = millis();
-    machines[0].current_state = MACHINE_STATE_BLENDING;
-  }
+//  if (start_time + 5000 < millis()) {
+//    LOG_PRINT(LOGGER_VERBOSE, "5 second test");    
+//    start_time = millis();
+//    machines[0].current_state = MACHINE_STATE_BLENDING;
+//  }
 }
 
 void auto_cycle_start(char* args) {

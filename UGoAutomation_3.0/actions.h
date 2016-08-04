@@ -3,8 +3,6 @@
 
 #include "global.h"
 
-#define MAX_ACTIONS 100
-
 #define ACTION_MTP 0
 #define ACTION_WAIT 1
 #define ACTION_ACTIVATE 2
@@ -21,7 +19,7 @@ typedef struct {
   char move_direction;
   /* The speed of the motor (0 -255) */
   char speed;
-  /* If the movement has not completed by the timeout move on */
+  /* How long to try before giving up */
   int time_out;
 } action_move_to_position_t;
 
@@ -68,7 +66,7 @@ typedef struct {
 } action_t;
 
 typedef struct {
-  action_t actions_ptr[100];
+  action_t* actions_ptr;
   int total_actions;
 } sequence_t;
 
