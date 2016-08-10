@@ -10,14 +10,17 @@ void input_button_init(input_button_t* input_button, char address) {
 }
 
 void input_button_read(input_button_t* input) {
-  int reading = digitalRead(input->address);
+  int reading = !digitalRead(input->address);
 
   if (reading != input->last_state) {
     input->last_debounce_time = millis();
-    LOG_PRINT(LOGGER_VERBOSE, "CHANGED STATE");
   }
 
   if ((millis() - input->last_debounce_time) > DEBOUNCING_TIME) {
-    input->current_state = reading;
+    if (reading != input->current_state) {
+      input->current_state = reading;
+    }
   }
+
+  input->last_state = reading;
 }

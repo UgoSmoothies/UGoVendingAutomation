@@ -3,7 +3,7 @@
 
 #include "global.h"
 
-#define DEBOUNCING_TIME 50
+#define DEBOUNCING_TIME 150
 
 typedef struct {
   char address;

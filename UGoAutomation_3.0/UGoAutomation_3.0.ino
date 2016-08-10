@@ -47,7 +47,7 @@ void setup() {
   logger_init();
 
   // For the time being, explicitly initialize the machine
-  machines[0].current_state = MACHINE_STATE_INITIALIZING;
+  //machines[0].current_state = MACHINE_STATE_INITIALIZING;
   
   mediator_register(MEDIATOR_AUTO_CYCLE_START, auto_cycle_start);
 
@@ -69,12 +69,6 @@ void loop() {
     machine_check_safety_conditions(&machines[i]);
     machine_process(&machines[i]);
   } 
-
-//  if (start_time + 5000 < millis()) {
-//    LOG_PRINT(LOGGER_VERBOSE, "5 second test");    
-//    start_time = millis();
-//    machines[0].current_state = MACHINE_STATE_BLENDING;
-//  }
 }
 
 void auto_cycle_start(char* args) {

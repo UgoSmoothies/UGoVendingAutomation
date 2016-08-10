@@ -42,9 +42,9 @@ void machine_init(machine_t* machine_ptr) {
   // initialize the blender
   blender_init(&machine_ptr->blender);
 
-  input_button_init(&machine_ptr->buttons[BLEND_BUTTON], 1);
-  input_button_init(&machine_ptr->buttons[CLEAN_BUTTON], 2);
-  input_button_init(&machine_ptr->buttons[STOP_BUTTON], 3); // NOT IMPLIMENTED
+  input_button_init(&machine_ptr->buttons[BLEND_BUTTON], 10);
+  input_button_init(&machine_ptr->buttons[CLEAN_BUTTON], 11);
+  input_button_init(&machine_ptr->buttons[STOP_BUTTON], 12);
   input_button_init(&machine_ptr->buttons[STEP_BUTTON], 4); // NOT IMPLIMENTED
 }
 
@@ -60,18 +60,18 @@ void machine_process(machine_t* machine_ptr) {
     if (machine_ptr->buttons[BLEND_BUTTON].current_state) {
       LOG_PRINT(LOGGER_VERBOSE, "Blender button pushed, starting blending");
       machine_ptr->current_state = MACHINE_STATE_BLENDING;
-    } else if (!machine_ptr->buttons[CLEAN_BUTTON].current_state) {
+    } else if (machine_ptr->buttons[CLEAN_BUTTON].current_state) {
       LOG_PRINT(LOGGER_VERBOSE, "Cleaning button pushed, starting cleaning");
       machine_ptr->current_state = MACHINE_STATE_CLEANING;
     }
   }
 
-  if (!machine_ptr->buttons[STOP_BUTTON].current_state) {
-      LOG_PRINT(LOGGER_VERBOSE, "Stop button pushed, stopping machine");
+  if (machine_ptr->buttons[STOP_BUTTON].current_state && machine_ptr->current_state = MACHINE_STATE_IDLE;) {
+    LOG_PRINT(LOGGER_VERBOSE, "Stop button pushed, stopping machine");
     machine_ptr->current_state = MACHINE_STATE_IDLE;
   }
 
-  LOG_PRINT(LOGGER_VERBOSE, "Machine Current State: %d - Button States: B%d C%d S%d - Motor Position: %d", 
+  LOG_PRINT(LOGGER_INFO , "Machine Current State: %d - Button States: B%d C%d S%d - Motor Position: %d", 
     machine_ptr->current_state,
     machine_ptr->buttons[BLEND_BUTTON].current_state,
     machine_ptr->buttons[CLEAN_BUTTON].current_state,
