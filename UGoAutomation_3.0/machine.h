@@ -6,11 +6,14 @@
 #include "blender.h"
 #include "input_button.h"
 
-#define BUTTON_COUNT 4
+#define BUTTON_COUNT 7
 #define BLEND_BUTTON 0
 #define CLEAN_BUTTON 1
 #define STOP_BUTTON 2
 #define STEP_BUTTON 3
+#define MOVE_UP 4
+#define MOVE_DOWN 5
+#define INITIALIZE 6
 
 typedef struct {
   char id;

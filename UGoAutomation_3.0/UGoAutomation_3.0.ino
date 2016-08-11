@@ -22,6 +22,9 @@ machine_t machines[NUMBER_OF_MACHINES];
 
 void auto_cycle_start(char*);
 
+long last_blink;
+char last_blink_state;
+
 unsigned long start_time;
 
 void setup() {
@@ -52,10 +55,14 @@ void setup() {
   mediator_register(MEDIATOR_AUTO_CYCLE_START, auto_cycle_start);
 
   LOG_PRINT(LOGGER_INFO, "Setup complete");
-
+  
+  pinMode(13, OUTPUT);
+  last_blink = millis();
+  last_blink_state = 0;
   start_time = millis();
   machines[0].last_step_time = millis();
 }
+
 
 void loop() {
   int i = 0;
@@ -69,6 +76,13 @@ void loop() {
     machine_check_safety_conditions(&machines[i]);
     machine_process(&machines[i]);
   } 
+
+  //blink LED for health status
+  if (millis() > last_blink + 1000) {
+    last_blink = millis();
+    last_blink_state = !last_blink_state;
+    digitalWrite(13, last_blink_state);    
+  }
 }
 
 void auto_cycle_start(char* args) {

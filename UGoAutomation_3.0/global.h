@@ -27,6 +27,7 @@ extern "C" {
 #define MACHINE_STATE_BLENDING 1
 #define MACHINE_STATE_CLEANING 2
 #define MACHINE_STATE_INITIALIZING 3
+#define MACHINE_STATE_STEPPING 4
 
 #define MACHINE_CYCLE_TYPE_AUTO 0
 #define MACHINE_CYCLE_TYPE_STEP 1
@@ -36,9 +37,9 @@ extern "C" {
 
 //Distance Calibration Measurments
 #define TOP_POSITION 145
-#define TOP_OF_CUP 310
-#define TOP_OF_SMOOTHIE 340 
-#define BOTTOM_OF_CUP 405
+#define TOP_OF_CUP 210//310
+#define TOP_OF_SMOOTHIE 250//340 
+#define BOTTOM_OF_CUP 340//405
 #define BOTTOM_OF_CLEANING 405
 #define CLEANING_LEVEL 358 
 

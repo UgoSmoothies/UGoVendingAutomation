@@ -1,5 +1,16 @@
 #include "blender.h"
 
+#define number_of_readings 10
+
+typedef struct {
+  int readings[number_of_readings];      // the readings from the analog input
+  int readIndex;              // the index of the current reading
+  int total;                  // the running total
+  int average;                // the average
+} blender_position_smoother_t;
+
+blender_position_smoother_t blender_smoother;
+
 void blender_init(blender_t* blender){
   blender->position = 0;
   blender->movement = BLENDER_MOVEMENT_IDLE;  
@@ -24,6 +35,10 @@ void blender_init(blender_t* blender){
   // will check safety and activated as needed
   digitalWrite(blender->actuator_up_enabled_address, ON);
   digitalWrite(blender->actuator_down_enabled_address, ON);
+
+  for (int thisReading = 0; thisReading < number_of_readings; thisReading++) {
+    blender_smoother.readings[thisReading] = 0;
+  }
 }
 
 void blender_move(blender_t* blender, char direction, char speed){
@@ -46,7 +61,22 @@ void blender_move(blender_t* blender, char direction, char speed){
 }
 
 void update_current_position(blender_t* blender) {
-  blender->position = analogRead(blender->encoder_address);
+    // subtract the last reading:
+  blender_smoother.total = blender_smoother.total - blender_smoother.readings[blender_smoother.readIndex];
+  // read from the sensor:
+  blender_smoother.readings[blender_smoother.readIndex] = analogRead(blender->encoder_address);
+  // add the reading to the total:
+  blender_smoother.total = blender_smoother.total + blender_smoother.readings[blender_smoother.readIndex];
+  // advance to the next position in the array:
+  blender_smoother.readIndex = blender_smoother.readIndex + 1;
+
+  // if we're at the end of the array...
+  if (blender_smoother.readIndex >= number_of_readings) {
+    // ...wrap around to the beginning:
+    blender_smoother.readIndex = 0;
+  }
+  
+  blender->position = blender_smoother.total / number_of_readings;
 }
 
 char move_to_position(blender_t* blender, unsigned long start_time, action_move_to_position_t* action_move_to_position) {
