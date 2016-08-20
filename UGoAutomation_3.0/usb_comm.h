@@ -6,6 +6,7 @@
 #define START_OF_MESSAGE 0x557E
 #define END_OF_MESSAGE 0x557F
 
+#define MSG_HEARTBEAT             0x0000
 #define MSG_AUTO_CYCLE            0x0001
 #define MSG_MACHINE_ERROR         0x0002
 #define MSG_MACHINE_STATE         0x0003`
@@ -14,6 +15,8 @@
 #define MSG_GET_ACTUATOR_STATE    0x0006
 #define MSG_SANITIZE_BLENDER      0x0007
 #define MSG_LOG                   0x0008
+#define MSG_INITIALIZE            0x0009
+#define MSG_MACHINE_STOP          0x000A
 
 #define MAX_HMI_PAYLOAD_SIZE 200
 

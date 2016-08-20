@@ -21,6 +21,11 @@ extern "C" {
 machine_t machines[NUMBER_OF_MACHINES];
 
 void auto_cycle_start(char*);
+void clean_cycle_start(char*);
+void initialize(char*);
+void stop_machine(char*);
+
+hmi_message_t heartbeat_msg;
 
 long last_blink;
 char last_blink_state;
@@ -53,6 +58,13 @@ void setup() {
   //machines[0].current_state = MACHINE_STATE_INITIALIZING;
   
   mediator_register(MEDIATOR_AUTO_CYCLE_START, auto_cycle_start);
+  mediator_register(MEDIATOR_CLEAN_CYCLE_START, clean_cycle_start);
+  mediator_register(MEDIATOR_INITIALIZE, initialize);
+  mediator_register(MEDIATOR_STOP_REQUEST, stop_machine);
+
+
+  
+  heartbeat_msg.message_id = MSG_HEARTBEAT;
 
   LOG_PRINT(LOGGER_INFO, "Setup complete");
   
@@ -62,7 +74,6 @@ void setup() {
   start_time = millis();
   machines[0].last_step_time = millis();
 }
-
 
 void loop() {
   int i = 0;
@@ -81,11 +92,30 @@ void loop() {
   if (millis() > last_blink + 1000) {
     last_blink = millis();
     last_blink_state = !last_blink_state;
-    digitalWrite(13, last_blink_state);    
+    digitalWrite(13, last_blink_state);   
+    usb_communication_send_message(heartbeat_msg, 0);
   }
 }
 
+// TODO: seriously, we need to add validation to this, otherwise
+// we can change from blending to cleaning without stopping.....
 void auto_cycle_start(char* args) {
   LOG_PRINT(LOGGER_INFO, "Starting Auto Cycle");
   machines[0].current_state = MACHINE_STATE_BLENDING;
 }
+
+void clean_cycle_start(char*) {
+  LOG_PRINT(LOGGER_INFO, "Starting Auto Cycle");
+  machines[0].current_state = MACHINE_STATE_CLEANING;
+}
+
+void initialize(char*){
+  LOG_PRINT(LOGGER_INFO, "Initializing");
+  machines[0].current_state = MACHINE_STATE_INITIALIZING;
+}
+
+void stop_machine(char* args) {
+  LOG_PRINT(LOGGER_INFO, "Initializing");
+  machines[0].current_state = MACHINE_STATE_IDLE;
+}
+

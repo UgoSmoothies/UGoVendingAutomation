@@ -235,8 +235,8 @@ void usb_communication_send_message(hmi_message_t msgToSend, unsigned int len) {
   // due the endianess, lets explicity set bytes to send
   int i = 0;
   unsigned char hmi_out_buffer[255];
-  hmi_out_buffer[i++] = (msgToSend.start_of_frame & 0xFF);
-  hmi_out_buffer[i++] = msgToSend.start_of_frame >> 8;
+  hmi_out_buffer[i++] = (START_OF_MESSAGE & 0xFF);
+  hmi_out_buffer[i++] = START_OF_MESSAGE >> 8;
   hmi_out_buffer[i++] = ((12 + len) & 0xFF);
   hmi_out_buffer[i++] = (12 + len) >> 8;
   hmi_out_buffer[i++] = 0; // src
@@ -262,14 +262,11 @@ void usb_communication_send_message(hmi_message_t msgToSend, unsigned int len) {
 
 void usb_communication_parse_message(short message_id, char* buffer){
   hmi_message_t replyMessage;
-    
+     
   switch (message_id) {
     case MSG_AUTO_CYCLE:
       mediator_send_message(MEDIATOR_AUTO_CYCLE_START, (char*)"");
       usb_communication_send_message(replyMessage, sizeof(replyMessage.auto_cycle));
-    break;
-  
-    case MSG_MACHINE_ERROR:// this is outgoing message, not incoming!
     break;
   
     case MSG_GET_FIRMWARE_VERSION:
@@ -285,6 +282,14 @@ void usb_communication_parse_message(short message_id, char* buffer){
     break;
   
     case MSG_SANITIZE_BLENDER:
+      mediator_send_message(MEDIATOR_CLEAN_CYCLE_START, (char*)"");
+      break;
+
+    case MSG_INITIALIZE:
+      mediator_send_message(MEDIATOR_INITIALIZE, (char*)"");
+      break;
+    case MSG_MACHINE_STOP:
+      mediator_send_message(MEDIATOR_STOP_REQUEST, (char*)"");
       break;
     default:
       // NOT IMPLEMENTED YET!

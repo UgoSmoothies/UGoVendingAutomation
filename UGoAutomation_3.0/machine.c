@@ -84,12 +84,12 @@ void machine_process(machine_t* machine_ptr) {
     machine_ptr->current_state = MACHINE_STATE_IDLE;
   }
 
-  if (machine_ptr->buttons[STEP_BUTTON].current_state) {
-    if (machine_ptr->current_state != MACHINE_STATE_STEPPING) {
-      machine_ptr->current_state = MACHINE_STATE_STEPPING;
-    }
-    step_request = 1;
-  }
+//  if (machine_ptr->buttons[STEP_BUTTON].current_state) {
+//    if (machine_ptr->current_state != MACHINE_STATE_STEPPING) {
+//      machine_ptr->current_state = MACHINE_STATE_STEPPING;
+//    }
+//    step_request = 1;
+//  }
 
   LOG_PRINT(LOGGER_DEBUG , "Machine Current State: %d - Button States: B%d C%d S%d MU%d MD%d I%d - Motor Position: %d", 
     machine_ptr->current_state,

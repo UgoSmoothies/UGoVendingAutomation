@@ -118,7 +118,7 @@ void log_print(char* filename, int line, enum LOGGER_LEVEL level, char *fmt, ...
     msg.log_message.level = level;
     memset(&msg.log_message.message, 0, sizeof(msg.log_message.message));
     memcpy(&msg.log_message.message, &log_builder, i);
-    c_send_message(msg, sizeof(msg.log_message) - (200 - i));
+    c_send_message(msg, i + 1);
 #endif
 
     // if an assert fails, keep in infinite loop

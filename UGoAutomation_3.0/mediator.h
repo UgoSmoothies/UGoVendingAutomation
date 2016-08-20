@@ -5,6 +5,8 @@
 
 #define MEDIATOR_AUTO_CYCLE_START 0
 #define MEDIATOR_STOP_REQUEST 1
+#define MEDIATOR_CLEAN_CYCLE_START 2
+#define MEDIATOR_INITIALIZE 3
 
 typedef void (* ACTION_PTR)(char*);
 

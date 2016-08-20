@@ -36,11 +36,21 @@ extern "C" {
 #define OFF LOW
 
 //Distance Calibration Measurments
-#define TOP_POSITION 145
-#define TOP_OF_CUP 210//310
-#define TOP_OF_SMOOTHIE 250//340 
-#define BOTTOM_OF_CUP 340//405
-#define BOTTOM_OF_CLEANING 405
-#define CLEANING_LEVEL 358 
 
+// 12" Actuator
+#ifdef TWELVE_INCH_ACTUATOR
+  #define TOP_POSITION 145
+  #define TOP_OF_CUP 210//310
+  #define TOP_OF_SMOOTHIE 250//340 
+  #define BOTTOM_OF_CUP 340//405
+  #define BOTTOM_OF_CLEANING 405
+  #define CLEANING_LEVEL 358 
+#else
+  #define TOP_POSITION 330
+  #define TOP_OF_CUP 430
+  #define TOP_OF_SMOOTHIE 460
+  #define BOTTOM_OF_CUP 625
+  #define BOTTOM_OF_CLEANING 650
+  #define CLEANING_LEVEL 400
+#endif // actuator length
 #endif
