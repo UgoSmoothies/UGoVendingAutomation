@@ -291,6 +291,8 @@ void usb_communication_parse_message(short message_id, char* buffer){
     case MSG_MACHINE_STOP:
       mediator_send_message(MEDIATOR_STOP_REQUEST, (char*)"");
       break;
+    case MSG_TOGGLE_ACTUATOR_STATE:
+      digitalWrite(buffer[8], !digitalRead(buffer[8]));
     default:
       // NOT IMPLEMENTED YET!
     break;

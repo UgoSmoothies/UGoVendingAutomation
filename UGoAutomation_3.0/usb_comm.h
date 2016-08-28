@@ -17,6 +17,7 @@
 #define MSG_LOG                   0x0008
 #define MSG_INITIALIZE            0x0009
 #define MSG_MACHINE_STOP          0x000A
+#define MSG_TOGGLE_ACTUATOR_STATE 0x000B
 
 #define MAX_HMI_PAYLOAD_SIZE 200
 

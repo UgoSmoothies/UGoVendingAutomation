@@ -76,6 +76,7 @@ sequence_t clean_sequence;
 action_t initializing_action;
 
 void blend_actions_init();
+void clean_actions_init();
 void initializing_action_init();
 
 #endif

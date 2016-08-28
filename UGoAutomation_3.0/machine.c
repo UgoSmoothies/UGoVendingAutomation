@@ -49,9 +49,9 @@ void machine_init(machine_t* machine_ptr) {
   input_button_init(&machine_ptr->buttons[STOP_BUTTON], 12);
   input_button_init(&machine_ptr->buttons[STEP_BUTTON], 0); // NOT IMPLIMENTED
   
-  input_button_init(&machine_ptr->buttons[MOVE_UP], 2);
-  input_button_init(&machine_ptr->buttons[MOVE_DOWN], 3);
-  input_button_init(&machine_ptr->buttons[INITIALIZE], 4);
+  input_button_init(&machine_ptr->buttons[MOVE_UP], 47);
+  input_button_init(&machine_ptr->buttons[MOVE_DOWN], 45);
+  input_button_init(&machine_ptr->buttons[INITIALIZE], 43);
   step_request = 0;
 }
 
@@ -66,7 +66,7 @@ void machine_process(machine_t* machine_ptr) {
 
   if (machine_ptr->current_state == MACHINE_STATE_IDLE) {
     if (machine_ptr->buttons[BLEND_BUTTON].current_state) {
-      LOG_PRINT(LOGGER_VERBOSE, "Blender button pushed, starting blending");
+      LOG_PRINT(LOGGER_VERBOSE, "Blender button pushed, starting blending, total actions: %d", blend_sequence.total_actions );
       machine_ptr->current_state = MACHINE_STATE_BLENDING;
     } else if (machine_ptr->buttons[CLEAN_BUTTON].current_state) {
       LOG_PRINT(LOGGER_VERBOSE, "Cleaning button pushed, starting cleaning");
@@ -81,6 +81,7 @@ void machine_process(machine_t* machine_ptr) {
   
   if (machine_ptr->buttons[STOP_BUTTON].current_state && machine_ptr->current_state != MACHINE_STATE_IDLE) {
     LOG_PRINT(LOGGER_VERBOSE, "Stop button pushed, stopping machine");
+    machine_stop(machine_ptr);
     machine_ptr->current_state = MACHINE_STATE_IDLE;
   }
 
@@ -107,10 +108,10 @@ void machine_process(machine_t* machine_ptr) {
   switch (machine_ptr->current_state) {
     case MACHINE_STATE_IDLE:    
       if (machine_ptr->buttons[MOVE_UP].current_state) {
-        LOG_PRINT(LOGGER_VERBOSE, "MOVING UP, current position:%d, speed:%d", machine_ptr->blender.position, MOTOR_SPEED_HALF);
-        blender_move(&machine_ptr->blender, BLENDER_MOVEMENT_UP, 50);
+        LOG_PRINT(LOGGER_VERBOSE, "MOVING UP, current position:%d, speed:%d             ", machine_ptr->blender.position, MOTOR_SPEED_HALF);
+        blender_move(&machine_ptr->blender, BLENDER_MOVEMENT_UP, MOTOR_SPEED_HALF);
       } else if (machine_ptr->buttons[MOVE_DOWN].current_state) {
-        LOG_PRINT(LOGGER_VERBOSE, "MOVING DOWN, current position:%d, speed:%d", machine_ptr->blender.position, MOTOR_SPEED_HALF);
+        LOG_PRINT(LOGGER_VERBOSE, "MOVING DOWN, current position:%d, speed:%d              ", machine_ptr->blender.position, MOTOR_SPEED_HALF);
         blender_move(&machine_ptr->blender, BLENDER_MOVEMENT_DOWN, MOTOR_SPEED_HALF);
       } else {
         //LOG_PRINT(LOGGER_VERBOSE, "IDLE");
@@ -123,9 +124,11 @@ void machine_process(machine_t* machine_ptr) {
     case MACHINE_STATE_BLENDING:
       if (machine_execute_action(machine_ptr, &blend_sequence.actions_ptr[machine_ptr->current_step])) {
         // we finished the last action, let's move to the next action.
-        LOG_PRINT(LOGGER_VERBOSE, "Bending step %d completed, percent complete:%d", machine_ptr->current_step, (100*machine_ptr->current_step)/blend_sequence.total_actions);
+        LOG_PRINT(LOGGER_VERBOSE, "Bending step %d completed, percent complete:%d", machine_ptr->current_step, (100*machine_ptr->current_step+1)/blend_sequence.total_actions);
         if (blend_sequence.actions_ptr[machine_ptr->current_step].type == ACTION_MTP) {
           LOG_PRINT(LOGGER_VERBOSE, "current position:%d, desired position:%d, direction:%d", machine_ptr->blender.position, blend_sequence.actions_ptr[machine_ptr->current_step].mtp.new_position, blend_sequence.actions_ptr[machine_ptr->current_step].mtp.move_direction);
+        } else if (blend_sequence.actions_ptr[machine_ptr->current_step].type == ACTION_ACTIVATE) {
+          LOG_PRINT(LOGGER_VERBOSE, "toggling output:%d, desired state:%d", blend_sequence.actions_ptr[machine_ptr->current_step].activate.address, blend_sequence.actions_ptr[machine_ptr->current_step].activate.state);
         }
         machine_ptr->current_step++;
         machine_ptr->last_step_time = millis();
@@ -138,6 +141,12 @@ void machine_process(machine_t* machine_ptr) {
       break;
     case MACHINE_STATE_CLEANING:
       if (machine_execute_action(machine_ptr, &clean_sequence.actions_ptr[machine_ptr->current_step])) {
+        LOG_PRINT(LOGGER_VERBOSE, "Cleaning step %d completed, percent complete:%d", machine_ptr->current_step, (100*machine_ptr->current_step+1)/clean_sequence.total_actions);
+        if (clean_sequence.actions_ptr[machine_ptr->current_step].type == ACTION_MTP) {
+          LOG_PRINT(LOGGER_VERBOSE, "current position:%d, desired position:%d, direction:%d", machine_ptr->blender.position, clean_sequence.actions_ptr[machine_ptr->current_step].mtp.new_position, clean_sequence.actions_ptr[machine_ptr->current_step].mtp.move_direction);
+        } else if (blend_sequence.actions_ptr[machine_ptr->current_step].type == ACTION_ACTIVATE) {
+          LOG_PRINT(LOGGER_VERBOSE, "toggling output:%d, desired state:%d", blend_sequence.actions_ptr[machine_ptr->current_step].activate.address, blend_sequence.actions_ptr[machine_ptr->current_step].activate.state);
+        }
         // we finished the last action, let's move to the next action.
         machine_ptr->current_step++;
         machine_ptr->last_step_time = millis();
@@ -202,3 +211,10 @@ char machine_check_safety_conditions(machine_t* machine_prt) {
   // TODO
   return 1;
 }
+
+void machine_stop(machine_t* machine_prt) {
+  // turn off blender and pump!!
+  digitalWrite(PUMP_ADDRESS, HIGH);
+  digitalWrite(BLENDER_ADDRESS, LOW);
+}
+

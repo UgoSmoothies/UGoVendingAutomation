@@ -29,6 +29,7 @@ typedef struct {
 void machine_init(machine_t*);
 void machine_process(machine_t*);
 void machine_change_state(machine_t*);
+void machine_stop(machine_t*);
 
 char machine_execute_action(machine_t*, action_t*);
 

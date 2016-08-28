@@ -1,6 +1,6 @@
 #include "blender.h"
 
-#define number_of_readings 10
+#define number_of_readings 3
 
 typedef struct {
   int readings[number_of_readings];      // the readings from the analog input
@@ -16,25 +16,32 @@ void blender_init(blender_t* blender){
   blender->movement = BLENDER_MOVEMENT_IDLE;  
   blender->blade = BLENDER_OFF;
   blender->water_pump = PUMP_OFF;
-  blender->actuator_up_address = 5;
-  blender->actuator_down_address = 6;
+  blender->actuator_up_address = 3;
+  blender->actuator_down_address = 4;
   blender->blender_ssr_address = BLENDER_ADDRESS;
   blender->water_pump_address = PUMP_ADDRESS; 
-  blender->encoder_address = A1;
+  blender->encoder_address = A2;
   blender->actuator_up_enabled_address = 7;
   blender->actuator_down_enabled_address = 8;
-
+  blender->liquid_filling_valve_address = LIQUID_FILLING_VALVE_ADDRESS;
+  blender->cleaning_valve_address = CLEANING_VALVE_ADDRESS;
   pinMode(blender->actuator_up_address, OUTPUT);
   pinMode(blender->actuator_down_address, OUTPUT);
   pinMode(blender->blender_ssr_address, OUTPUT);
   pinMode(blender->water_pump_address, OUTPUT);
   pinMode(blender->actuator_up_enabled_address, OUTPUT);
   pinMode(blender->actuator_down_enabled_address, OUTPUT);
+  pinMode(blender->liquid_filling_valve_address, OUTPUT);
+  pinMode(blender->cleaning_valve_address, OUTPUT);
 
   // for now we are going to activate motor enabled. later on we
   // will check safety and activated as needed
   digitalWrite(blender->actuator_up_enabled_address, ON);
   digitalWrite(blender->actuator_down_enabled_address, ON);
+  
+  digitalWrite(blender->water_pump_address, ON);
+  digitalWrite(blender->liquid_filling_valve_address, ON);
+  digitalWrite(blender->cleaning_valve_address, ON);
 
   for (int thisReading = 0; thisReading < number_of_readings; thisReading++) {
     blender_smoother.readings[thisReading] = 0;
@@ -50,12 +57,12 @@ void blender_move(blender_t* blender, char direction, char speed){
       analogWrite(blender->actuator_up_address, speed);
     break;
     case BLENDER_MOVEMENT_UP:
-      digitalWrite(blender->actuator_up_address, 0);
-      digitalWrite(blender->actuator_down_address, speed);
+      analogWrite(blender->actuator_up_address, 0);
+      analogWrite(blender->actuator_down_address, speed);
     break;
     case BLENDER_MOVEMENT_IDLE:
-      digitalWrite(blender->actuator_up_address, 0);
-      digitalWrite(blender->actuator_down_address, 0);
+      analogWrite(blender->actuator_up_address, 0);
+      analogWrite(blender->actuator_down_address, 0);
     break;
   }
 }
@@ -128,8 +135,12 @@ char wait(blender_t* blender, unsigned long start_wait_time, action_wait_t* acti
 }
 
 char activate(blender_t* blender, action_activate_t* action_activate) {
+  if (action_activate->address == BLENDER_ADDRESS) {
     digitalWrite(action_activate->address, action_activate->state);
-    return 1;
+  } else {
+    digitalWrite(action_activate->address, !action_activate->state);
+  }
+  return 1;
 }
 
 char agitate(blender_t* blender_ptr, action_agitate_t* action_agitate) {

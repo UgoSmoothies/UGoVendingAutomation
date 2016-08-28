@@ -27,10 +27,7 @@ void stop_machine(char*);
 
 hmi_message_t heartbeat_msg;
 
-long last_blink;
-char last_blink_state;
-
-unsigned long start_time;
+long last_heartbeat;
 
 void setup() {
   int i;
@@ -41,6 +38,7 @@ void setup() {
 
   // initialize the patterns
   blend_actions_init();
+  clean_actions_init();
   initializing_action_init();
  
   // initialize the machine
@@ -61,17 +59,12 @@ void setup() {
   mediator_register(MEDIATOR_CLEAN_CYCLE_START, clean_cycle_start);
   mediator_register(MEDIATOR_INITIALIZE, initialize);
   mediator_register(MEDIATOR_STOP_REQUEST, stop_machine);
-
-
-  
+ 
   heartbeat_msg.message_id = MSG_HEARTBEAT;
 
   LOG_PRINT(LOGGER_INFO, "Setup complete");
   
-  pinMode(13, OUTPUT);
-  last_blink = millis();
-  last_blink_state = 0;
-  start_time = millis();
+  last_heartbeat = millis();
   machines[0].last_step_time = millis();
 }
 
@@ -88,11 +81,9 @@ void loop() {
     machine_process(&machines[i]);
   } 
 
-  //blink LED for health status
-  if (millis() > last_blink + 1000) {
-    last_blink = millis();
-    last_blink_state = !last_blink_state;
-    digitalWrite(13, last_blink_state);   
+  // send out heartbeat message
+  if (millis() > last_heartbeat + 1000) {
+    last_heartbeat = millis(); 
     usb_communication_send_message(heartbeat_msg, 0);
   }
 }
