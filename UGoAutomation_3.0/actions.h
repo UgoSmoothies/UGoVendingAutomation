@@ -7,10 +7,17 @@
 #define ACTION_WAIT 1
 #define ACTION_ACTIVATE 2
 #define ACTION_AGITATE 3
+#define ACTION_WAIT_FOR 4
 
 #define MOTOR_SPEED_FULL 0xFF
 #define MOTOR_SPEED_HALF (MOTOR_SPEED_FULL / 2)
 #define MOTOR_SPEED_OFF 0x00
+
+#define WAIT_FOR_CUP_IN_PLACE 0
+
+#define WAIT_FOR_LESS_THAN 0 
+#define WAIT_FOR_GREATER_THAN 1
+#define WAIT_FOR_EQUALS 2
 
 typedef struct {
   /* The new position to move to */
@@ -34,6 +41,12 @@ typedef struct {
   /* On or off */
   char state; // 0:OFF; 1:ON;
 } action_activate_t;
+
+typedef struct {
+  char type;
+  char value;
+  char comparer;
+} action_wait_for_t;
 
 // TODO: This needs to change when there is more than 1 machine
 typedef struct {
@@ -62,6 +75,7 @@ typedef struct {
     action_wait_t wait;
     action_activate_t activate;
     action_agitate_t agitate;
+    action_wait_for_t wait_for;
   };
 } action_t;
 

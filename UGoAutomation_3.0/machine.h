@@ -5,6 +5,7 @@
 #include "actions.h"
 #include "blender.h"
 #include "input_button.h"
+#include "NewPingCWrapper.h"
 
 #define BUTTON_COUNT 7
 #define BLEND_BUTTON 0
@@ -23,6 +24,10 @@ typedef struct {
   char current_step;
   blender_t blender;
   unsigned long last_step_time;
+  unsigned long last_jam_check_time;
+  int last_jam_check_position;
+  int cup_detect_reading;
+  CNewPing* cup_detect_sensor;
   input_button_t buttons[BUTTON_COUNT];
 } machine_t;
 
@@ -34,6 +39,8 @@ void machine_stop(machine_t*);
 char machine_execute_action(machine_t*, action_t*);
 
 char machine_check_safety_conditions(machine_t*);
+
+char machine_wait_for(machine_t*, action_wait_for_t*);
 
 #endif
 

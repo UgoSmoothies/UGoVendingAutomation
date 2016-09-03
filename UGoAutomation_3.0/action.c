@@ -8,6 +8,14 @@ void blend_actions_init() {
 
   // allocate space for actions_ptr
   blend_sequence.actions_ptr = (action_t*) malloc(MAX_ACTIONS * sizeof(action_t));
+
+  blend_sequence.actions_ptr[i].type = ACTION_WAIT_FOR;
+  blend_sequence.actions_ptr[i].wait_for.type = WAIT_FOR_CUP_IN_PLACE; // position
+  blend_sequence.actions_ptr[i].wait_for.value = 13;
+  blend_sequence.actions_ptr[i++].wait_for.comparer = WAIT_FOR_LESS_THAN;
+
+  blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+  blend_sequence.actions_ptr[i++].wait.time_to_wait = 5000; //ms
     
   // 1. Move the blender to above the cup
   blend_sequence.actions_ptr[i].type = ACTION_MTP;
@@ -93,6 +101,14 @@ void clean_actions_init() {
   int i, j = 0;
   
   clean_sequence.actions_ptr = (action_t*) malloc(MAX_ACTIONS * sizeof(action_t));
+  
+  blend_sequence.actions_ptr[i].type = ACTION_WAIT_FOR;
+  blend_sequence.actions_ptr[i].wait_for.type = WAIT_FOR_CUP_IN_PLACE; // position
+  blend_sequence.actions_ptr[i].wait_for.value = 20;
+  blend_sequence.actions_ptr[i++].wait_for.comparer = WAIT_FOR_GREATER_THAN;
+
+  blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+  blend_sequence.actions_ptr[i++].wait.time_to_wait = 2000; //ms
   
   // 1. Move the blender to above the cup
   clean_sequence.actions_ptr[i].type = ACTION_MTP;
