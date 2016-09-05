@@ -23,6 +23,7 @@ void blender_init(blender_t* blender){
   blender->encoder_address = A2;
   blender->actuator_up_enabled_address = 7;
   blender->actuator_down_enabled_address = 8;
+  blender->blender_speed_address = BLENDER_SPEED_ADDRESS;
   blender->liquid_filling_valve_address = LIQUID_FILLING_VALVE_ADDRESS;
   blender->cleaning_valve_address = CLEANING_VALVE_ADDRESS;
   pinMode(blender->actuator_up_address, OUTPUT);
@@ -33,7 +34,7 @@ void blender_init(blender_t* blender){
   pinMode(blender->actuator_down_enabled_address, OUTPUT);
   pinMode(blender->liquid_filling_valve_address, OUTPUT);
   pinMode(blender->cleaning_valve_address, OUTPUT);
-
+  pinMode(blender->blender_speed_address, OUTPUT);
   // for now we are going to activate motor enabled. later on we
   // will check safety and activated as needed
   digitalWrite(blender->actuator_up_enabled_address, ON);
@@ -42,6 +43,7 @@ void blender_init(blender_t* blender){
   digitalWrite(blender->water_pump_address, ON);
   digitalWrite(blender->liquid_filling_valve_address, ON);
   digitalWrite(blender->cleaning_valve_address, ON);
+  digitalWrite(blender->blender_speed_address, ON);
 
   for (int thisReading = 0; thisReading < number_of_readings; thisReading++) {
     blender_smoother.readings[thisReading] = 0;

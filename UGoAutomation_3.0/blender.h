@@ -18,6 +18,8 @@
 #define PUMP_ADDRESS 51
 #define LIQUID_FILLING_VALVE_ADDRESS 49
 #define CLEANING_VALVE_ADDRESS 53
+#define BLENDER_SPEED_ADDRESS 35
+
 
 typedef struct{
   int position;
@@ -33,6 +35,8 @@ typedef struct{
   int actuator_down_enabled_address;
   int liquid_filling_valve_address;
   int cleaning_valve_address;
+  char blender_speed;  
+  char blender_speed_address;
 } blender_t;
 
 void blender_init(blender_t*);

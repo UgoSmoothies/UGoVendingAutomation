@@ -56,10 +56,10 @@ extern "C" {
   
 //4" Actuator  
   #define TOP_POSITION 360 //320
-  #define TOP_OF_CUP 400 // 380
-  #define TOP_OF_SMOOTHIE 420 // 410
-  #define BOTTOM_OF_CUP 550
-  #define BOTTOM_OF_CLEANING 645
-  #define CLEANING_LEVEL 570
+  #define TOP_OF_CUP 450 // 380
+  #define TOP_OF_SMOOTHIE 455 // 410
+  #define BOTTOM_OF_CUP 585
+  #define BOTTOM_OF_CLEANING 685
+  #define CLEANING_LEVEL 573
 #endif // actuator length
 #endif

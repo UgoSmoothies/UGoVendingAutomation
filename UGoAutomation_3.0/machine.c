@@ -143,6 +143,10 @@ void machine_process(machine_t* machine_ptr) {
       break;
     case MACHINE_STATE_BLENDING:
       if (machine_execute_action(machine_ptr, &blend_sequence.actions_ptr[machine_ptr->current_step])) {
+        // reset jam issue
+        machine_ptr->last_jam_check_position = machine_ptr->blender.position;
+        machine_ptr->last_jam_check_time = millis();
+
         // we finished the last action, let's move to the next action.
         LOG_PRINT(LOGGER_VERBOSE, "Bending step %d completed, percent complete:%d", machine_ptr->current_step, (100*machine_ptr->current_step+1)/blend_sequence.total_actions);
         if (blend_sequence.actions_ptr[machine_ptr->current_step].type == ACTION_MTP) {
@@ -152,39 +156,19 @@ void machine_process(machine_t* machine_ptr) {
         }
         machine_ptr->current_step++;
         machine_ptr->last_step_time = millis();
-        machine_ptr->last_jam_check_position = millis();
 
         if (machine_ptr->current_step == blend_sequence.total_actions) {
           LOG_PRINT(LOGGER_VERBOSE, "Blending complete, cleaning machine");
           machine_ptr->current_step = 0;
           machine_ptr->current_state = MACHINE_STATE_CLEANING;
+          
+          // Jam detection changes the actual action array, reinitialize when done
+          blend_actions_init();
         }
       } else {
         // we need to check if we are actually moving properly
         if (blend_sequence.actions_ptr[machine_ptr->current_step].type == ACTION_MTP) {
-          // we we are supposed to be moving, let's validate that we are actually moving
-          if (machine_ptr->last_jam_check_time + 100 > millis()) {
-            switch (blend_sequence.actions_ptr[machine_ptr->current_step].mtp.move_direction) {
-              int where_should_we_be = 0;
-              // change to ABS calc instead of switch
-              case BLENDER_MOVEMENT_UP:
-                  where_should_we_be = machine_ptr->last_jam_check_position - 5;
-                  if (where_should_we_be < machine_ptr->blender.position) {
-                    // JAMMED
-                    LOG_PRINT(LOGGER_VERBOSE, "Jammed moving up");
-                  }
-                break;
-              case BLENDER_MOVEMENT_DOWN:
-                  where_should_we_be = machine_ptr->last_jam_check_position + 5;
-                  if (where_should_we_be > machine_ptr->blender.position) {
-                    // JAMMED
-                    LOG_PRINT(LOGGER_VERBOSE, "Jammed moving down");
-                  }
-                break;
-            }
-            machine_ptr->last_jam_check_position = machine_ptr->blender.position;
-            machine_ptr->last_jam_check_time = millis();
-          }
+          machine_check_for_jams(machine_ptr);
         }
       }
       break;
@@ -262,14 +246,13 @@ char machine_execute_action(machine_t* machine_ptr, action_t* action) {
 // function to check if the machine is in an unsafe state, and take action
 char machine_check_safety_conditions(machine_t* machine_ptr) {
   // TODO
-if (machine_ptr->current_state == MACHINE_STATE_BLENDING) {
-//  if (machine_ptr->cup_detect_reading > 17) {
-//    // cup went missing
-//    machine_stop(machine_ptr);
-//  }
-//  
-}
-  
+  if (machine_ptr->current_state == MACHINE_STATE_BLENDING) {
+  //  if (machine_ptr->cup_detect_reading > 17) {
+  //    // cup went missing
+  //    machine_stop(machine_ptr);
+  //  }
+  //  
+  }
   return 1;
 }
 
@@ -304,5 +287,50 @@ char machine_wait_for(machine_t* machine_ptr, action_wait_for_t* wait_for) {
   }
 
   return false;
+}
+
+void machine_check_for_jams(machine_t* machine_ptr) {
+  // we we are supposed to be moving, let's validate that we are actually moving
+  if (machine_ptr->last_jam_check_time + 500 < millis()) {
+    int where_should_we_be = 0;
+    switch (blend_sequence.actions_ptr[machine_ptr->current_step].mtp.move_direction) {
+      // change to ABS calc instead of switch
+      case BLENDER_MOVEMENT_UP:
+          where_should_we_be = machine_ptr->last_jam_check_position - 5;
+          if (where_should_we_be < machine_ptr->blender.position) {
+            // JAMMED
+            LOG_PRINT(LOGGER_ERROR, "Jammed moving up: should be:%d is:%d", where_should_we_be, machine_ptr->blender.position);
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_MTP;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = BOTTOM_OF_CUP - 25; // position
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_DOWN;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.time_out = 3000;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_HALF;
+            
+            blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_WAIT;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 500; //ms
+            machine_ptr->current_step = machine_ptr->current_step - 2;
+          }
+        break;
+      case BLENDER_MOVEMENT_DOWN:
+          where_should_we_be = machine_ptr->last_jam_check_position + 5;
+          if (where_should_we_be > machine_ptr->blender.position) {
+            // JAMMED
+            LOG_PRINT(LOGGER_ERROR, "Jammed moving down: should be:%d is:%d", where_should_we_be, machine_ptr->blender.position);
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_MTP;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = TOP_OF_SMOOTHIE + 25; // position
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_UP;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.time_out = 3000;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_HALF;
+            
+            blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_WAIT;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 500; //ms
+            machine_ptr->current_step = machine_ptr->current_step - 2;
+            
+          }
+        break;
+    }
+    machine_ptr->last_jam_check_position = machine_ptr->blender.position;
+    machine_ptr->last_jam_check_time = millis();
+  }
 }
 

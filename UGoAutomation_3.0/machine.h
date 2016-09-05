@@ -4,6 +4,7 @@
 #include "global.h"
 #include "actions.h"
 #include "blender.h"
+#include "liquid_filling.h"
 #include "input_button.h"
 #include "NewPingCWrapper.h"
 
@@ -23,6 +24,7 @@ typedef struct {
   char cuurent_cycle_type;
   char current_step;
   blender_t blender;
+  liquid_filler_t liquid_filler;
   unsigned long last_step_time;
   unsigned long last_jam_check_time;
   int last_jam_check_position;
@@ -42,6 +44,8 @@ char machine_execute_action(machine_t*, action_t*);
 char machine_check_safety_conditions(machine_t*);
 
 char machine_wait_for(machine_t*, action_wait_for_t*);
+
+void machine_check_for_jams(machine_t*);
 
 #endif
 
