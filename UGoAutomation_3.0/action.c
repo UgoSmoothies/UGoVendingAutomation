@@ -11,11 +11,35 @@ void blend_actions_init() {
 
   blend_sequence.actions_ptr[i].type = ACTION_WAIT_FOR;
   blend_sequence.actions_ptr[i].wait_for.type = WAIT_FOR_CUP_IN_PLACE; // position
-  blend_sequence.actions_ptr[i].wait_for.value = 13;
+  blend_sequence.actions_ptr[i].wait_for.value = 15;
   blend_sequence.actions_ptr[i++].wait_for.comparer = WAIT_FOR_LESS_THAN;
 
   blend_sequence.actions_ptr[i].type = ACTION_WAIT;
-  blend_sequence.actions_ptr[i++].wait.time_to_wait = 5000; //ms
+  blend_sequence.actions_ptr[i++].wait.time_to_wait = 2000; //ms
+
+  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  blend_sequence.actions_ptr[i].activate.address = LIQUID_FILLING_VALVE_ADDRESS;
+  blend_sequence.actions_ptr[i++].activate.state = ON;
+
+  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  blend_sequence.actions_ptr[i].activate.address = CLEANING_VALVE_ADDRESS;
+  blend_sequence.actions_ptr[i++].activate.state = OFF;
+
+  // wait for valve to activate before turing pump on
+  blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+  blend_sequence.actions_ptr[i++].wait.time_to_wait = 500; //ms
+  
+  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  blend_sequence.actions_ptr[i].activate.address = PUMP_ADDRESS;
+  blend_sequence.actions_ptr[i++].activate.state = ON;
+
+  blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+  blend_sequence.actions_ptr[i++].wait.time_to_wait = 2000; //ms
+  
+  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  blend_sequence.actions_ptr[i].activate.address = PUMP_ADDRESS;
+  blend_sequence.actions_ptr[i++].activate.state = OFF;
+
     
   // 1. Move the blender to above the cup
   blend_sequence.actions_ptr[i].type = ACTION_MTP;
@@ -94,6 +118,15 @@ void blend_actions_init() {
   blend_sequence.actions_ptr[i].mtp.time_out = 10000;
   blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_FULL;
 
+  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  blend_sequence.actions_ptr[i].activate.address = LIQUID_FILLING_VALVE_ADDRESS;
+  blend_sequence.actions_ptr[i++].activate.state = ON;
+
+  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  blend_sequence.actions_ptr[i].activate.address = CLEANING_VALVE_ADDRESS;
+  blend_sequence.actions_ptr[i++].activate.state = ON;
+
+
   blend_sequence.total_actions = i;
 }
 
@@ -102,13 +135,13 @@ void clean_actions_init() {
   
   clean_sequence.actions_ptr = (action_t*) malloc(MAX_ACTIONS * sizeof(action_t));
   
-  blend_sequence.actions_ptr[i].type = ACTION_WAIT_FOR;
-  blend_sequence.actions_ptr[i].wait_for.type = WAIT_FOR_CUP_IN_PLACE; // position
-  blend_sequence.actions_ptr[i].wait_for.value = 20;
-  blend_sequence.actions_ptr[i++].wait_for.comparer = WAIT_FOR_GREATER_THAN;
+  clean_sequence.actions_ptr[i].type = ACTION_WAIT_FOR;
+  clean_sequence.actions_ptr[i].wait_for.type = WAIT_FOR_CUP_IN_PLACE; // position
+  clean_sequence.actions_ptr[i].wait_for.value = 20;
+  clean_sequence.actions_ptr[i++].wait_for.comparer = WAIT_FOR_GREATER_THAN;
 
-  blend_sequence.actions_ptr[i].type = ACTION_WAIT;
-  blend_sequence.actions_ptr[i++].wait.time_to_wait = 2000; //ms
+  clean_sequence.actions_ptr[i].type = ACTION_WAIT;
+  clean_sequence.actions_ptr[i++].wait.time_to_wait = 2000; //ms
   
   // 1. Move the blender to above the cup
   clean_sequence.actions_ptr[i].type = ACTION_MTP;
@@ -155,6 +188,12 @@ void clean_actions_init() {
 
     clean_sequence.actions_ptr[i].type = ACTION_WAIT;
     clean_sequence.actions_ptr[i++].wait.time_to_wait = 200; //ms
+
+    if (j == 3) {
+      clean_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+      clean_sequence.actions_ptr[i].activate.address = PUMP_ADDRESS;
+      clean_sequence.actions_ptr[i++].activate.state = OFF;
+    }
   }
 
   clean_sequence.actions_ptr[i].type = ACTION_WAIT;
@@ -174,6 +213,14 @@ void clean_actions_init() {
   clean_sequence.actions_ptr[i].mtp.time_out = 10000;
   clean_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_FULL; 
   
+  clean_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  clean_sequence.actions_ptr[i].activate.address = LIQUID_FILLING_VALVE_ADDRESS;
+  clean_sequence.actions_ptr[i++].activate.state = ON;
+
+  clean_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  clean_sequence.actions_ptr[i].activate.address = CLEANING_VALVE_ADDRESS;
+  clean_sequence.actions_ptr[i++].activate.state = ON;
+  
   clean_sequence.total_actions = i;
 }
 
@@ -183,6 +230,4 @@ void initializing_action_init() {
   initializing_action.mtp.move_direction = BLENDER_MOVEMENT_UP;
   initializing_action.mtp.speed = MOTOR_SPEED_FULL;
   initializing_action.mtp.time_out = 5000;
-
-
 }

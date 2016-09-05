@@ -41,6 +41,7 @@ char step_request;
 void machine_init(machine_t* machine_ptr) {
   machine_ptr->is_initialized = 0;
   machine_ptr->current_state = MACHINE_STATE_IDLE;
+  machine_ptr->last_cup_read_time = millis();
 
   // MAGIC NUMBERS FOR NOW, DEFINE AFTER......
   machine_ptr->cup_detect_sensor = new_ping_c_wrapper_init(12,11);
@@ -62,7 +63,12 @@ void machine_init(machine_t* machine_ptr) {
 void machine_process(machine_t* machine_ptr) {
   int i;
   update_current_position(&machine_ptr->blender);
-  machine_ptr->cup_detect_reading = new_ping_c_wrapper_sonar_ping(machine_ptr->cup_detect_sensor);
+
+  if ((machine_ptr->last_cup_read_time + 500) < millis()) {
+    machine_ptr->cup_detect_reading = new_ping_c_wrapper_sonar_ping(machine_ptr->cup_detect_sensor);    
+    //LOG_PRINT(LOGGER_VERBOSE, "Reading: %d address:%d", machine_ptr->cup_detect_reading, &machine_ptr->cup_detect_reading);
+    machine_ptr->last_cup_read_time = millis();
+  }
 
   // ---------- BEGING INPUT BUTTON SECTION ----------
   for (i = 0; i < BUTTON_COUNT; i++) {
@@ -124,7 +130,13 @@ void machine_process(machine_t* machine_ptr) {
         machine_stop(machine_ptr);
         blender_move(&machine_ptr->blender, BLENDER_MOVEMENT_IDLE, 0);
       }
-    
+
+      // temp hack for now, just to keep valves closed
+      if (digitalRead(LIQUID_FILLING_VALVE_ADDRESS) != 1 || digitalRead(CLEANING_VALVE_ADDRESS) != 1) {
+         digitalWrite(LIQUID_FILLING_VALVE_ADDRESS, 1);
+         digitalWrite(CLEANING_VALVE_ADDRESS, 1);
+      }
+      
       machine_ptr->current_step = 0;
       machine_ptr->last_step_time = millis();
       machine_ptr->last_jam_check_position = millis();
@@ -143,8 +155,9 @@ void machine_process(machine_t* machine_ptr) {
         machine_ptr->last_jam_check_position = millis();
 
         if (machine_ptr->current_step == blend_sequence.total_actions) {
-          LOG_PRINT(LOGGER_VERBOSE, "Blending complete, stopping machine");
-          machine_ptr->current_state = MACHINE_STATE_IDLE;
+          LOG_PRINT(LOGGER_VERBOSE, "Blending complete, cleaning machine");
+          machine_ptr->current_step = 0;
+          machine_ptr->current_state = MACHINE_STATE_CLEANING;
         }
       } else {
         // we need to check if we are actually moving properly
@@ -247,8 +260,16 @@ char machine_execute_action(machine_t* machine_ptr, action_t* action) {
 }
 
 // function to check if the machine is in an unsafe state, and take action
-char machine_check_safety_conditions(machine_t* machine_prt) {
+char machine_check_safety_conditions(machine_t* machine_ptr) {
   // TODO
+if (machine_ptr->current_state == MACHINE_STATE_BLENDING) {
+//  if (machine_ptr->cup_detect_reading > 17) {
+//    // cup went missing
+//    machine_stop(machine_ptr);
+//  }
+//  
+}
+  
   return 1;
 }
 
@@ -259,6 +280,7 @@ void machine_stop(machine_t* machine_prt) {
 }
 
 char machine_wait_for(machine_t* machine_ptr, action_wait_for_t* wait_for) {
+  LOG_PRINT(LOGGER_VERBOSE, "waiting for T:%d C:%d R:%d V%d", wait_for->type, wait_for->comparer, machine_ptr->cup_detect_reading, wait_for->value);
   switch (wait_for->type) {
     case WAIT_FOR_CUP_IN_PLACE:
       switch (wait_for->comparer) {

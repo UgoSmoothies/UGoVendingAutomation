@@ -19,7 +19,7 @@
 #define WAIT_FOR_GREATER_THAN 1
 #define WAIT_FOR_EQUALS 2
 
-typedef struct {
+typedef struct __attribute__((__packed__, aligned(1))) {
   /* The new position to move to */
   int new_position;
   /* The direction to move */
@@ -30,26 +30,26 @@ typedef struct {
   int time_out;
 } action_move_to_position_t;
 
-typedef struct {
+typedef struct __attribute__((__packed__, aligned(1))) {
   /* How long to wait */
   int time_to_wait;
 } action_wait_t;
 
-typedef struct {
+typedef struct __attribute__((__packed__, aligned(1))) {
   /* What to change */
   char address;
   /* On or off */
   char state; // 0:OFF; 1:ON;
 } action_activate_t;
 
-typedef struct {
+typedef struct __attribute__((__packed__, aligned(1))) {
   char type;
   char value;
   char comparer;
 } action_wait_for_t;
 
 // TODO: This needs to change when there is more than 1 machine
-typedef struct {
+typedef struct __attribute__((__packed__, aligned(1))) {
   /* how many units to raise */
   char rising_distance;
   /* how many units to lower */
@@ -60,15 +60,15 @@ typedef struct {
   char start_direction; // 0: LOWER; 1:RAISE
   /* internal variable to track number of times repeated */
   char current_cycle;
-  /* insternal variable first or second step */
+  /* internal variable first or second step */
   char current_step;
-  /* insternal variable to track where we started */
+  /* internal variable to track where we started */
   char start_position;
-  /* insternal variable to see if we have started */
+  /* internal variable to see if we have started */
   char is_running;
 } action_agitate_t;
 
-typedef struct {
+typedef struct __attribute__((__packed__, aligned(1))) {
   char type;
   union {
     action_move_to_position_t mtp;
@@ -79,7 +79,7 @@ typedef struct {
   };
 } action_t;
 
-typedef struct {
+typedef struct __attribute__((__packed__, aligned(1))) {
   action_t* actions_ptr;
   int total_actions;
 } sequence_t;

@@ -1,6 +1,6 @@
 #include "NewPingCWrapper.h"
 #include "NewPing.h"
-
+#include "global.h"
 #define MAX_DISTANCE 200
 
 extern "C" {
@@ -13,6 +13,8 @@ extern "C" {
 
     int new_ping_c_wrapper_sonar_ping(const CNewPing *new_ping) {
        NewPing *t = (NewPing *)new_ping;
-       return t->ping() / US_ROUNDTRIP_CM;
+       int value = t->ping() / US_ROUNDTRIP_CM;
+       LOG_PRINT(LOGGER_DEBUG, "ping value %d", value);
+       return value;
     }
 }
