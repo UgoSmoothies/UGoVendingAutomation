@@ -33,7 +33,7 @@ void setup() {
   int i;
 #ifdef USB_COMMUNICATION
   // set up the serial port for communucation
-  Serial.begin(9600);
+  Serial.begin(115200);
 #endif
 
   // initialize the patterns
@@ -84,7 +84,7 @@ void loop() {
   // send out heartbeat message
   if (millis() > last_heartbeat + 1000) {
     last_heartbeat = millis(); 
-    usb_communication_send_message(heartbeat_msg, 0);
+    //usb_communication_send_message(heartbeat_msg, 0);
   }
 }
 

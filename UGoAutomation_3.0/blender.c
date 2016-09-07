@@ -147,28 +147,36 @@ char activate(blender_t* blender, action_activate_t* action_activate) {
 
 char agitate(blender_t* blender_ptr, action_agitate_t* action_agitate) {
   // agitate is a series of move_to_positions, this is where we set it up
+  LOG_PRINT(LOGGER_ERROR, "Agitating");
   action_move_to_position_t* action_move_to_position_ptr;
 
   if(!action_agitate->is_running) {
-    // first entry point
-    update_current_position(blender_ptr);
-    
     action_agitate->is_running = 1;
     action_agitate->start_position = blender_ptr->position;
   }
   
   if ((!action_agitate->current_step && action_agitate->start_direction) || (action_agitate->current_step && !action_agitate->start_direction)) {
+    
+  LOG_PRINT(LOGGER_ERROR, "DOWN");
     // LOWER
     action_move_to_position_ptr->new_position = action_agitate->start_position + action_agitate->lowering_distance ;
     action_move_to_position_ptr->move_direction = BLENDER_MOVEMENT_DOWN;
+    action_move_to_position_ptr->speed = MOTOR_SPEED_FULL;
+    action_move_to_position_ptr->time_out = 5000;
   } else {
+    
+  LOG_PRINT(LOGGER_ERROR, "UP");
     // RAISE
     action_move_to_position_ptr->new_position = action_agitate->start_position - action_agitate->rising_distance ;
     action_move_to_position_ptr->move_direction = BLENDER_MOVEMENT_UP;
+    action_move_to_position_ptr->speed = MOTOR_SPEED_FULL;
+    action_move_to_position_ptr->time_out = 5000;
   }
 
   if (move_to_position(blender_ptr, millis(), action_move_to_position_ptr)) {
     // we are in the right position
+    
+  LOG_PRINT(LOGGER_ERROR, "MTP DONE");
     action_agitate->start_position = blender_ptr->position;
     
     if (action_agitate->current_step) {
@@ -185,4 +193,6 @@ char agitate(blender_t* blender_ptr, action_agitate_t* action_agitate) {
     action_agitate->current_step = 0;
     return 1;
   }
+
+  return 0;
 }

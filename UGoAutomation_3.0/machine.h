@@ -8,7 +8,7 @@
 #include "input_button.h"
 #include "NewPingCWrapper.h"
 
-#define BUTTON_COUNT 8
+#define BUTTON_COUNT 9
 #define BLEND_BUTTON 0
 #define CLEAN_BUTTON 1
 #define STOP_BUTTON 2
@@ -17,6 +17,7 @@
 #define MOVE_DOWN 5
 #define INITIALIZE 6
 #define REBLEND_BUTTON 7
+#define JOG_PUMP_BUTTON 8
 
 typedef struct {
   char id;

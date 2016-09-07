@@ -59,6 +59,7 @@ void machine_init(machine_t* machine_ptr) {
   input_button_init(&machine_ptr->buttons[INITIALIZE], 43);
   
   input_button_init(&machine_ptr->buttons[REBLEND_BUTTON], 33);
+  input_button_init(&machine_ptr->buttons[JOG_PUMP_BUTTON], 31);
   step_request = 0;
 }
 
@@ -92,13 +93,15 @@ void machine_process(machine_t* machine_ptr) {
   }
   
   if (machine_ptr->buttons[INITIALIZE].current_state) {
-      LOG_PRINT(LOGGER_VERBOSE, "Initializing");
-      machine_ptr->current_state = MACHINE_STATE_INITIALIZING;
+    LOG_PRINT(LOGGER_VERBOSE, "Initializing");
+    blend_actions_init(1);
+    machine_ptr->current_state = MACHINE_STATE_INITIALIZING;
   }
   
   if (machine_ptr->buttons[STOP_BUTTON].current_state && machine_ptr->current_state != MACHINE_STATE_IDLE) {
     LOG_PRINT(LOGGER_VERBOSE, "Stop button pushed, stopping machine");
     machine_stop(machine_ptr);
+    blend_actions_init(1);
     machine_ptr->current_state = MACHINE_STATE_IDLE;
   }
 
@@ -136,10 +139,20 @@ void machine_process(machine_t* machine_ptr) {
         machine_stop(machine_ptr);
         blender_move(&machine_ptr->blender, BLENDER_MOVEMENT_IDLE, 0);
       }
+      
+      if (machine_ptr->buttons[JOG_PUMP_BUTTON].current_state) {
+        LOG_PRINT(LOGGER_VERBOSE, "MOVING DOWN, current position:%d, speed:%d", machine_ptr->blender.position, MOTOR_SPEED_HALF);
+        digitalWrite(PUMP_ADDRESS, 0);
+        digitalWrite(LIQUID_FILLING_VALVE_ADDRESS, 0);
+         
+      } else if (!machine_ptr->buttons[JOG_PUMP_BUTTON].current_state) {
+        LOG_PRINT(LOGGER_VERBOSE, "MOVING DOWN, current position:%d, speed:%d", machine_ptr->blender.position, MOTOR_SPEED_HALF);
+        digitalWrite(PUMP_ADDRESS, 1);
+        digitalWrite(LIQUID_FILLING_VALVE_ADDRESS, 1);
+      }
 
       // temp hack for now, just to keep valves closed
-      if (digitalRead(LIQUID_FILLING_VALVE_ADDRESS) != 1 || digitalRead(CLEANING_VALVE_ADDRESS) != 1) {
-         digitalWrite(LIQUID_FILLING_VALVE_ADDRESS, 1);
+      if (digitalRead(CLEANING_VALVE_ADDRESS) != 1) {
          digitalWrite(CLEANING_VALVE_ADDRESS, 1);
       }
       
@@ -243,7 +256,6 @@ char machine_execute_action(machine_t* machine_ptr, action_t* action) {
       return machine_wait_for(machine_ptr, &action->wait_for);
       break;
   }
-
   // error...
   LOG_PRINT(LOGGER_WARNING, "machine_execute_action - invalid action type: %d", action->type);
   return 0;
@@ -252,12 +264,14 @@ char machine_execute_action(machine_t* machine_ptr, action_t* action) {
 // function to check if the machine is in an unsafe state, and take action
 char machine_check_safety_conditions(machine_t* machine_ptr) {
   // TODO
-  if (machine_ptr->current_state == MACHINE_STATE_BLENDING) {
-  //  if (machine_ptr->cup_detect_reading > 17) {
-  //    // cup went missing
-  //    machine_stop(machine_ptr);
-  //  }
-  //  
+  if (machine_ptr->current_state == MACHINE_STATE_CLEANING) {
+    if (machine_ptr->cup_detect_reading < 8) {
+      // something is in the machine
+      machine_ptr->current_state = MACHINE_STATE_IDLE;
+      LOG_PRINT(LOGGER_ERROR, "SAFETY TIGGERED");
+      
+      machine_stop(machine_ptr);
+    }
   }
   return 1;
 }
@@ -266,7 +280,6 @@ void machine_stop(machine_t* machine_prt) {
   // turn off blender and pump!!
   digitalWrite(PUMP_ADDRESS, HIGH);
   digitalWrite(BLENDER_ADDRESS, LOW);
-  blend_actions_init(1);
 }
 
 char machine_wait_for(machine_t* machine_ptr, action_wait_for_t* wait_for) {
@@ -298,6 +311,7 @@ char machine_wait_for(machine_t* machine_ptr, action_wait_for_t* wait_for) {
 
 void machine_check_for_jams(machine_t* machine_ptr) {
   // we we are supposed to be moving, let's validate that we are actually moving
+  if (blend_sequence.actions_ptr[machine_ptr->current_step].mtp.new_position == TOP_POSITION) {return;}
   if (machine_ptr->last_jam_check_time + 500 < millis()) {
     int where_should_we_be = 0;
     switch (blend_sequence.actions_ptr[machine_ptr->current_step].mtp.move_direction) {
@@ -308,10 +322,10 @@ void machine_check_for_jams(machine_t* machine_ptr) {
             // JAMMED
             LOG_PRINT(LOGGER_ERROR, "Jammed moving up: should be:%d is:%d", where_should_we_be, machine_ptr->blender.position);
             blend_sequence.actions_ptr[machine_ptr->current_step - 4].type = ACTION_WAIT;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 4].wait.time_to_wait = 500; //ms
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].wait.time_to_wait = 750; //ms
 
             blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_MTP;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.new_position = (machine_ptr->blender.position + 20 > BOTTOM_OF_CUP) ? BOTTOM_OF_CUP : machine_ptr->blender.position + 20; // position
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.new_position = (machine_ptr->blender.position + 50 > BOTTOM_OF_CUP) ? BOTTOM_OF_CUP : machine_ptr->blender.position + 50; // position
             blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.move_direction = BLENDER_MOVEMENT_DOWN;
             blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.time_out = 3000;
             blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.speed = MOTOR_SPEED_HALF;
@@ -331,10 +345,10 @@ void machine_check_for_jams(machine_t* machine_ptr) {
             // JAMMED
             LOG_PRINT(LOGGER_ERROR, "Jammed moving down: should be:%d is:%d", where_should_we_be, machine_ptr->blender.position);
             blend_sequence.actions_ptr[machine_ptr->current_step - 4].type = ACTION_WAIT;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 4].wait.time_to_wait = 500; //ms
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].wait.time_to_wait = 750; //ms
 
             blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_MTP;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.new_position = (machine_ptr->blender.position - 20 < TOP_OF_SMOOTHIE) ? TOP_OF_SMOOTHIE : machine_ptr->blender.position - 20; // position
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.new_position = (machine_ptr->blender.position - 50 < TOP_OF_SMOOTHIE) ? TOP_OF_SMOOTHIE : machine_ptr->blender.position - 50; // position
             blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.move_direction = BLENDER_MOVEMENT_UP;
             blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.time_out = 3000;
             blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.speed = MOTOR_SPEED_HALF;
