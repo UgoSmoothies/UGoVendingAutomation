@@ -11,6 +11,7 @@
 
 #define MOTOR_SPEED_FULL 0xFF
 #define MOTOR_SPEED_HALF (MOTOR_SPEED_FULL / 2)
+#define MOTOR_SPEED_THIRD 0x55
 #define MOTOR_SPEED_OFF 0x00
 
 #define WAIT_FOR_CUP_IN_PLACE 0
@@ -89,7 +90,7 @@ sequence_t clean_sequence;
 
 action_t initializing_action;
 
-void blend_actions_init();
+void blend_actions_init(char reinit);
 void clean_actions_init();
 void initializing_action_init();
 

@@ -37,7 +37,7 @@ void setup() {
 #endif
 
   // initialize the patterns
-  blend_actions_init();
+  blend_actions_init(0);
   clean_actions_init();
   initializing_action_init();
  

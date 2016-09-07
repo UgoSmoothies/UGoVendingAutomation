@@ -57,6 +57,8 @@ void machine_init(machine_t* machine_ptr) {
   input_button_init(&machine_ptr->buttons[MOVE_UP], 47);
   input_button_init(&machine_ptr->buttons[MOVE_DOWN], 45);
   input_button_init(&machine_ptr->buttons[INITIALIZE], 43);
+  
+  input_button_init(&machine_ptr->buttons[REBLEND_BUTTON], 33);
   step_request = 0;
 }
 
@@ -82,6 +84,10 @@ void machine_process(machine_t* machine_ptr) {
     } else if (machine_ptr->buttons[CLEAN_BUTTON].current_state) {
       LOG_PRINT(LOGGER_VERBOSE, "Cleaning button pushed, starting cleaning");
       machine_ptr->current_state = MACHINE_STATE_CLEANING;
+    } else if (machine_ptr->buttons[REBLEND_BUTTON].current_state) {
+      LOG_PRINT(LOGGER_VERBOSE, "Reblender button pushed, starting reblending, total actions: %d", blend_sequence.total_actions );
+      blend_sequence.actions_ptr[5].activate.state = OFF;
+      machine_ptr->current_state = MACHINE_STATE_BLENDING;
     }
   }
   
@@ -163,7 +169,7 @@ void machine_process(machine_t* machine_ptr) {
           machine_ptr->current_state = MACHINE_STATE_CLEANING;
           
           // Jam detection changes the actual action array, reinitialize when done
-          blend_actions_init();
+          blend_actions_init(1);
         }
       } else {
         // we need to check if we are actually moving properly
@@ -260,6 +266,7 @@ void machine_stop(machine_t* machine_prt) {
   // turn off blender and pump!!
   digitalWrite(PUMP_ADDRESS, HIGH);
   digitalWrite(BLENDER_ADDRESS, LOW);
+  blend_actions_init(1);
 }
 
 char machine_wait_for(machine_t* machine_ptr, action_wait_for_t* wait_for) {
@@ -296,19 +303,26 @@ void machine_check_for_jams(machine_t* machine_ptr) {
     switch (blend_sequence.actions_ptr[machine_ptr->current_step].mtp.move_direction) {
       // change to ABS calc instead of switch
       case BLENDER_MOVEMENT_UP:
-          where_should_we_be = machine_ptr->last_jam_check_position - 5;
+          where_should_we_be = machine_ptr->last_jam_check_position - 2;
           if (where_should_we_be < machine_ptr->blender.position) {
             // JAMMED
             LOG_PRINT(LOGGER_ERROR, "Jammed moving up: should be:%d is:%d", where_should_we_be, machine_ptr->blender.position);
-            blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_MTP;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = BOTTOM_OF_CUP - 25; // position
-            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_DOWN;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.time_out = 3000;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_HALF;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].type = ACTION_WAIT;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].wait.time_to_wait = 500; //ms
+
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_MTP;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.new_position = (machine_ptr->blender.position + 20 > BOTTOM_OF_CUP) ? BOTTOM_OF_CUP : machine_ptr->blender.position + 20; // position
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.move_direction = BLENDER_MOVEMENT_DOWN;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.time_out = 3000;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.speed = MOTOR_SPEED_HALF;
+            
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_ACTIVATE;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].activate.address = BLENDER_SPEED_ADDRESS;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].activate.state = ON;
             
             blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_WAIT;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 500; //ms
-            machine_ptr->current_step = machine_ptr->current_step - 2;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 2000; //ms
+            machine_ptr->current_step = machine_ptr->current_step - 4;
           }
         break;
       case BLENDER_MOVEMENT_DOWN:
@@ -316,16 +330,22 @@ void machine_check_for_jams(machine_t* machine_ptr) {
           if (where_should_we_be > machine_ptr->blender.position) {
             // JAMMED
             LOG_PRINT(LOGGER_ERROR, "Jammed moving down: should be:%d is:%d", where_should_we_be, machine_ptr->blender.position);
-            blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_MTP;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = TOP_OF_SMOOTHIE + 25; // position
-            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_UP;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.time_out = 3000;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_HALF;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].type = ACTION_WAIT;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].wait.time_to_wait = 500; //ms
+
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_MTP;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.new_position = (machine_ptr->blender.position - 20 < TOP_OF_SMOOTHIE) ? TOP_OF_SMOOTHIE : machine_ptr->blender.position - 20; // position
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.move_direction = BLENDER_MOVEMENT_UP;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.time_out = 3000;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.speed = MOTOR_SPEED_HALF;
             
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_ACTIVATE;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].activate.address = BLENDER_SPEED_ADDRESS;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 2].activate.state = ON;
+
             blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_WAIT;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 500; //ms
-            machine_ptr->current_step = machine_ptr->current_step - 2;
-            
+            blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 2000; //ms
+            machine_ptr->current_step = machine_ptr->current_step - 4;
           }
         break;
     }
