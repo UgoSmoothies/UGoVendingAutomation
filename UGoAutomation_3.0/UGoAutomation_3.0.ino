@@ -63,7 +63,7 @@ void setup() {
   mediator_register(MEDIATOR_STOP_REQUEST, stop_machine);
   mediator_register(MEDIATOR_REBLEND, machine_reblend);
   mediator_register(MEDIATOR_JOG_TOP,machine_jog_top);
-  mediator_register(MEDIATOR_JOG_BOTTOM, machine_bottom);
+  mediator_register(MEDIATOR_JOG_BOTTOM, machine_jog_bottom);
   mediator_register(MEDIATOR_MOVE_UP, machine_move_up);
   mediator_register(MEDIATOR_MOVE_DOWN, machine_move_down);
 
@@ -138,12 +138,12 @@ void machine_jog_bottom(char* message){
 
 void machine_move_up(char* message){
   LOG_PRINT(LOGGER_VERBOSE, "Moving up");
-  analogWrite(blender->actuator_up_address, 0);
-  analogWrite(blender->actuator_down_address, 50);
+  analogWrite(machines[0].blender.actuator_up_address, 0);
+  analogWrite(machines[0].blender.actuator_down_address, 50);
 }
 
 void machine_move_down(char* message){
   send_status("Moving down");
-  analogWrite(machines[0]blender->actuator_down_address, 0);   
-  analogWrite(machines[0].blender->actuator_up_address, 50);
+  analogWrite(machines[0].blender.actuator_down_address, 0);   
+  analogWrite(machines[0].blender.actuator_up_address, 50);
 }
