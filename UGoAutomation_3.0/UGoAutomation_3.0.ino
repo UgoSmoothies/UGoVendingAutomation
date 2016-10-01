@@ -139,11 +139,11 @@ void machine_jog_bottom(char* message){
 void machine_move_up(char* message){
   LOG_PRINT(LOGGER_VERBOSE, "Moving up");
   analogWrite(blender->actuator_up_address, 0);
-  analogWrite(blender->actuator_down_address, speed);
+  analogWrite(blender->actuator_down_address, 50);
 }
 
 void machine_move_down(char* message){
-  LOG_PRINT(LOGGER_VERBOSE, "Moving down");
-  analogWrite(blender->actuator_down_address, 0);   
-  analogWrite(blender->actuator_up_address, speed);
+  send_status("Moving down");
+  analogWrite(machines[0]blender->actuator_down_address, 0);   
+  analogWrite(machines[0].blender->actuator_up_address, 50);
 }

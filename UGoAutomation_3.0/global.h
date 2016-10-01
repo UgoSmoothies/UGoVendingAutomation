@@ -5,6 +5,7 @@
 
 #include "Arduino.h"
 #include <stdio.h>
+#include "usb_comm.h"
 
     
 #define USB_COMMUNICATION
