@@ -1,6 +1,6 @@
 #include "blender.h"
 
-#define number_of_readings 3
+#define number_of_readings 25
 
 typedef struct {
   int readings[number_of_readings];      // the readings from the analog input
@@ -97,8 +97,8 @@ char move_to_position(blender_t* blender, unsigned long start_time, action_move_
     blender_move(blender, action_move_to_position->move_direction, action_move_to_position->speed);
   }
 
-  // add a timeout in case it gets jammed
-  if (start_time + action_move_to_position->time_out < millis()) {
+  // add a timeout in case it gets jammed  // time_out bigger means when jam detected, the actuator will react faster
+  if (start_time + (action_move_to_position->time_out) < millis()) { //(start_time + action_move_to_position->time_out < millis()) {
     LOG_PRINT(LOGGER_VERBOSE, "Movement timeout");
     return true;
   }

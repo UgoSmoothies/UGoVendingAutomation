@@ -1,3 +1,4 @@
+//kaikk, 10.01
 /*
  * TODO: 
  * LEDs not implelemted
@@ -84,7 +85,7 @@ void loop() {
   // send out heartbeat message
   if (millis() > last_heartbeat + 1000) {
     last_heartbeat = millis(); 
-    //usb_communication_send_message(heartbeat_msg, 0);
+    usb_communication_send_message(heartbeat_msg, 0);
   }
 }
 

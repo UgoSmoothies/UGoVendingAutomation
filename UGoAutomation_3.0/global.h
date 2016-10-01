@@ -5,6 +5,7 @@
 
 #include "Arduino.h"
 #include <stdio.h>
+
     
 #define USB_COMMUNICATION
 
@@ -35,6 +36,7 @@ extern "C" {
 #define ON HIGH
 #define OFF LOW
 
+
 //Distance Calibration Measurments
 
 // 12" Actuator
@@ -58,8 +60,9 @@ extern "C" {
   #define TOP_POSITION 360 //320
   #define TOP_OF_CUP 450 // 380
   #define TOP_OF_SMOOTHIE 455 // 410
-  #define BOTTOM_OF_CUP 585
-  #define BOTTOM_OF_CLEANING 685
+  #define BOTTOM_OF_CUP 595//585
+  #define BOTTOM_OF_CLEANING 660 
   #define CLEANING_LEVEL 573
 #endif // actuator length
+
 #endif

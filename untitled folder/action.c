@@ -46,7 +46,7 @@ void blend_actions_init(char reinit) {
 
   // 1. Move the blender to above the cup
   blend_sequence.actions_ptr[i].type = ACTION_MTP;
-  blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP + 65; // position TOP_OF_CUP+20， 35, 45
+  blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP + 45; // position TOP_OF_CUP+20， 35
   blend_sequence.actions_ptr[i].mtp.move_direction = BLENDER_MOVEMENT_DOWN;
   blend_sequence.actions_ptr[i].mtp.time_out = 5000;
   blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_HALF;
@@ -71,7 +71,7 @@ void blend_actions_init(char reinit) {
   //need half speed of blade to prevent from splattering
   blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
   blend_sequence.actions_ptr[i].activate.address = BLENDER_SPEED_ADDRESS;
-  blend_sequence.actions_ptr[i++].activate.state = OFF; //OFF
+  blend_sequence.actions_ptr[i++].activate.state = ON; //OFF
 
   blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
   blend_sequence.actions_ptr[i].activate.address = LIQUID_FILLING_VALVE_ADDRESS;
@@ -105,7 +105,7 @@ void blend_actions_init(char reinit) {
 
   for (j = 0; j < 4; j++) {
     blend_sequence.actions_ptr[i].type = ACTION_MTP;
-    blend_sequence.actions_ptr[i].mtp.new_position = BOTTOM_OF_CUP - 40; // position 595-30 BOTTOM_OF_CUP - 60
+    blend_sequence.actions_ptr[i].mtp.new_position = BOTTOM_OF_CUP - 60; // position 595-30 BOTTOM_OF_CUP - 60
     blend_sequence.actions_ptr[i].mtp.move_direction = BLENDER_MOVEMENT_UP;
     blend_sequence.actions_ptr[i].mtp.time_out = 3000;
     blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_FULL;
@@ -124,12 +124,24 @@ void blend_actions_init(char reinit) {
   }
 
 
+  
+
+  // add final smoothie stir repeat twice
+  //half blender speed
+  
+  //blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  //blend_sequence.actions_ptr[i].activate.address = BLENDER_SPEED_ADDRESS;
+  //blend_sequence.actions_ptr[i++].activate.state = OFF;
+
+  //blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+  //blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms    
+
    for (j = 0; j < 2; j++) {
     blend_sequence.actions_ptr[i].type = ACTION_MTP;
-    blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP + 60; // position 595-30  TOP_OF_CUP + 15,40
+    blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP + 40; // position 595-30  TOP_OF_CUP + 15
     blend_sequence.actions_ptr[i].mtp.move_direction = BLENDER_MOVEMENT_UP;
     blend_sequence.actions_ptr[i].mtp.time_out = 3000;
-    blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_QUARTER; //half
+    blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_FULL; //half
 
 
     blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
@@ -148,34 +160,27 @@ void blend_actions_init(char reinit) {
     blend_sequence.actions_ptr[i].type = ACTION_WAIT;
     blend_sequence.actions_ptr[i++].wait.time_to_wait = 750; //ms 1000
     
+
+    //blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+    //blend_sequence.actions_ptr[i].activate.address = BLENDER_SPEED_ADDRESS;
+    //blend_sequence.actions_ptr[i++].activate.state = OFF;
+
+    //blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+    //blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms
+     
+    
   }    
   
-   //repeat
-    //
-    blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
-    blend_sequence.actions_ptr[i].activate.address = BLENDER_ADDRESS;
-    blend_sequence.actions_ptr[i++].activate.state = OFF;
-
-    blend_sequence.actions_ptr[i].type = ACTION_WAIT;
-    blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms   
-
-    blend_sequence.actions_ptr[i].type = ACTION_MTP;
-    blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP + 20; // position 595-30  TOP_OF_CUP + 15
-    blend_sequence.actions_ptr[i].mtp.move_direction = BLENDER_MOVEMENT_UP;
-    blend_sequence.actions_ptr[i].mtp.time_out = 3000;
-    blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_HALF; //half 
-    //
-
+  //repeat
    for (j = 0; j < 2; j++) {
     blend_sequence.actions_ptr[i].type = ACTION_MTP;
-    blend_sequence.actions_ptr[i].mtp.new_position = BOTTOM_OF_CUP - 40; // position 595-30 BOTTOM_OF_CUP - 60
+    blend_sequence.actions_ptr[i].mtp.new_position = BOTTOM_OF_CUP - 60; // position 595-30 BOTTOM_OF_CUP - 60
     blend_sequence.actions_ptr[i].mtp.move_direction = BLENDER_MOVEMENT_UP;
     blend_sequence.actions_ptr[i].mtp.time_out = 3000;
-    blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_QUARTER;
+    blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_FULL;
 
     blend_sequence.actions_ptr[i].type = ACTION_WAIT;
     blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms
-
     
     blend_sequence.actions_ptr[i].type = ACTION_MTP;
     blend_sequence.actions_ptr[i].mtp.new_position = BOTTOM_OF_CUP + 10; // position 595+5  BOTTOM_OF_CUP -40,BOTTOM_OF_CUP
@@ -183,51 +188,24 @@ void blend_actions_init(char reinit) {
     blend_sequence.actions_ptr[i].mtp.time_out = 3000;
     blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_QUARTER; //full half
 
-    
-
     blend_sequence.actions_ptr[i].type = ACTION_WAIT;
-    blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms  
-
-    //
-    blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
-    blend_sequence.actions_ptr[i].activate.address = BLENDER_ADDRESS;
-    blend_sequence.actions_ptr[i++].activate.state = ON;
-    //  
+    blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms    
   }
   
-  //refill
-  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
-  blend_sequence.actions_ptr[i].activate.address = LIQUID_FILLING_VALVE_ADDRESS;
-  blend_sequence.actions_ptr[i++].activate.state = ON;
-
-  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
-  blend_sequence.actions_ptr[i].activate.address = CLEANING_VALVE_ADDRESS;
-  blend_sequence.actions_ptr[i++].activate.state = OFF;
-
-  blend_sequence.actions_ptr[i].type = ACTION_WAIT;
-  blend_sequence.actions_ptr[i++].wait.time_to_wait = 100; //ms
   
-  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
-  blend_sequence.actions_ptr[i].activate.address = PUMP_ADDRESS;
-  blend_sequence.actions_ptr[i++].activate.state = ON;
-  
+  //blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  //blend_sequence.actions_ptr[i].activate.address = BLENDER_SPEED_ADDRESS;
+  //blend_sequence.actions_ptr[i++].activate.state = OFF;
 
-  blend_sequence.actions_ptr[i].type = ACTION_WAIT;
-  blend_sequence.actions_ptr[i++].wait.time_to_wait = 1000; //ms 2750
-  
-  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
-  blend_sequence.actions_ptr[i].activate.address = PUMP_ADDRESS;
-  blend_sequence.actions_ptr[i++].activate.state = OFF;
+  //blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+  //blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms    
 
-  blend_sequence.actions_ptr[i].type = ACTION_WAIT;
-  blend_sequence.actions_ptr[i++].wait.time_to_wait = 1000; //ms
-  //
-   for (j = 0; j < 2; j++) {
+   for (j = 0; j < 1; j++) {
     blend_sequence.actions_ptr[i].type = ACTION_MTP;
-    blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP + 60; // position 595-30  TOP_OF_CUP + 15
+    blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP + 40; // position 595-30  TOP_OF_CUP + 15
     blend_sequence.actions_ptr[i].mtp.move_direction = BLENDER_MOVEMENT_UP;
     blend_sequence.actions_ptr[i].mtp.time_out = 3000;
-    blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_QUARTER; //half
+    blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_FULL; //half
 
 
     blend_sequence.actions_ptr[i].type = ACTION_WAIT;
@@ -240,18 +218,12 @@ void blend_actions_init(char reinit) {
     blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_QUARTER;//half
 
     blend_sequence.actions_ptr[i].type = ACTION_WAIT;
-    blend_sequence.actions_ptr[i++].wait.time_to_wait = 700; //ms 1000 2750
+    blend_sequence.actions_ptr[i++].wait.time_to_wait = 2750; //ms 1000 
     
   }    
   
+  
   // 23. Move to top, stay in liquid
-  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
-  blend_sequence.actions_ptr[i].activate.address = BLENDER_ADDRESS;
-  blend_sequence.actions_ptr[i++].activate.state = OFF;
-
-  blend_sequence.actions_ptr[i].type = ACTION_WAIT;
-  blend_sequence.actions_ptr[i++].wait.time_to_wait = 1000; //ms  
-
   blend_sequence.actions_ptr[i].type = ACTION_MTP;
   blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP; // position
   blend_sequence.actions_ptr[i].mtp.move_direction = BLENDER_MOVEMENT_UP;
@@ -260,11 +232,13 @@ void blend_actions_init(char reinit) {
 
   blend_sequence.actions_ptr[i].type = ACTION_WAIT;
   blend_sequence.actions_ptr[i++].wait.time_to_wait = 100; //ms
+     
+    
   
   // SHAKE OFF above smoothie
   for (j = 0; j < 7; j++) {
     blend_sequence.actions_ptr[i].type = ACTION_MTP;
-    blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP - 15; // position TOP_OF_CUP - 15, 19，-15,+5
+    blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP + 5; // position TOP_OF_CUP - 15, 19，-15
     blend_sequence.actions_ptr[i].mtp.move_direction = BLENDER_MOVEMENT_UP;
     blend_sequence.actions_ptr[i].mtp.time_out = 3000;
     blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_FULL;
@@ -273,7 +247,7 @@ void blend_actions_init(char reinit) {
     //blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms
     
     blend_sequence.actions_ptr[i].type = ACTION_MTP;
-    blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP - 5; // position TOP_OF_CUP-10, 14，-10,+10
+    blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP + 10; // position TOP_OF_CUP-10, 14，-10
     blend_sequence.actions_ptr[i].mtp.move_direction = BLENDER_MOVEMENT_DOWN;
     blend_sequence.actions_ptr[i].mtp.time_out = 3000;
     blend_sequence.actions_ptr[i++].mtp.speed = MOTOR_SPEED_FULL;
@@ -286,12 +260,12 @@ void blend_actions_init(char reinit) {
   blend_sequence.actions_ptr[i].type = ACTION_WAIT;
   blend_sequence.actions_ptr[i++].wait.time_to_wait = 100; //ms
 
-  //blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
-  //blend_sequence.actions_ptr[i].activate.address = BLENDER_ADDRESS;
-  //blend_sequence.actions_ptr[i++].activate.state = OFF;
+  blend_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+  blend_sequence.actions_ptr[i].activate.address = BLENDER_ADDRESS;
+  blend_sequence.actions_ptr[i++].activate.state = OFF;
 
-  //blend_sequence.actions_ptr[i].type = ACTION_WAIT;
-  //blend_sequence.actions_ptr[i++].wait.time_to_wait = 1400; //ms
+  blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+  blend_sequence.actions_ptr[i++].wait.time_to_wait = 1400; //ms
 
   blend_sequence.actions_ptr[i].type = ACTION_MTP;
   blend_sequence.actions_ptr[i].mtp.new_position = TOP_OF_CUP - 30; // position TOP_OF_CUP - 20
@@ -380,6 +354,47 @@ void clean_actions_init() {
   // wait for valve to activate before turing pump on
   clean_sequence.actions_ptr[i].type = ACTION_WAIT;
   clean_sequence.actions_ptr[i++].wait.time_to_wait = 500; //ms
+  
+  /*for (j = 0; j < 2; j++) {
+    // 2. Turn blender on
+    clean_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+    clean_sequence.actions_ptr[i].activate.address = BLENDER_SPEED_ADDRESS;
+    clean_sequence.actions_ptr[i++].activate.state = ON;
+  
+    // wait for valve to activate before turing pump on
+    clean_sequence.actions_ptr[i].type = ACTION_WAIT;
+    clean_sequence.actions_ptr[i++].wait.time_to_wait = 500; //ms
+    //full speed of blade
+    clean_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+    clean_sequence.actions_ptr[i].activate.address = BLENDER_ADDRESS;
+    clean_sequence.actions_ptr[i++].activate.state = ON;
+    
+    // first loop turns on the pump, second turns off
+    if ((j % 2) == 1) {
+      clean_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+      clean_sequence.actions_ptr[i].activate.address = PUMP_ADDRESS;
+      clean_sequence.actions_ptr[i++].activate.state = OFF;
+    } else {
+      clean_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+      clean_sequence.actions_ptr[i].activate.address = PUMP_ADDRESS;
+      clean_sequence.actions_ptr[i++].activate.state = ON; //should be on
+    }
+    
+    
+    clean_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+    clean_sequence.actions_ptr[i].activate.address = LIQUID_FILLING_VALVE_ADDRESS;
+    clean_sequence.actions_ptr[i++].activate.state = ON;
+    
+
+    clean_sequence.actions_ptr[i].type = ACTION_WAIT;
+    clean_sequence.actions_ptr[i++].wait.time_to_wait = 1500; //ms
+    //ADD
+    clean_sequence.actions_ptr[i].type = ACTION_ACTIVATE;
+    clean_sequence.actions_ptr[i].activate.address = LIQUID_FILLING_VALVE_ADDRESS;
+    clean_sequence.actions_ptr[i++].activate.state = OFF;
+
+  }
+  */
 
  
   // 2. Turn blender on
@@ -421,6 +436,11 @@ void clean_actions_init() {
   clean_sequence.actions_ptr[i].activate.address = PUMP_ADDRESS;
   clean_sequence.actions_ptr[i++].activate.state = OFF; 
 
+  
+  //add
+  //clean_sequence.actions_ptr[i].type = ACTION_WAIT;
+  //clean_sequence.actions_ptr[i++].wait.time_to_wait = 1000; //ms
+  
   clean_sequence.actions_ptr[i].type = ACTION_MTP;
   clean_sequence.actions_ptr[i].mtp.new_position = CLEANING_LEVEL - 20;//at the surface of plastic 555
   clean_sequence.actions_ptr[i].mtp.move_direction = BLENDER_MOVEMENT_UP;

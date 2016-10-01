@@ -92,7 +92,6 @@ void machine_process(machine_t* machine_ptr) {
     } else if (machine_ptr->buttons[REBLEND_BUTTON].current_state) {
       LOG_PRINT(LOGGER_VERBOSE, "Reblender button pushed, starting reblending, total actions: %d", blend_sequence.total_actions );
       blend_sequence.actions_ptr[5].activate.state = OFF;
-      blend_sequence.actions_ptr[64].activate.state = OFF;
       machine_ptr->current_state = MACHINE_STATE_BLENDING;
     }
   }
@@ -149,7 +148,7 @@ void machine_process(machine_t* machine_ptr) {
       }
       //jog pump top
       if (machine_ptr->buttons[JOG_PUMP_BUTTON].current_state) {
-        //LOG_PRINT(LOGGER_VERBOSE, "MOVING DOWN, current position:%d, speed:%d", machine_ptr->blender.position, MOTOR_SPEED_HALF);
+        LOG_PRINT(LOGGER_VERBOSE, "MOVING DOWN, current position:%d, speed:%d", machine_ptr->blender.position, MOTOR_SPEED_HALF);
         digitalWrite(PUMP_ADDRESS, 0);
         digitalWrite(LIQUID_FILLING_VALVE_ADDRESS, 0);  
       } else if (!machine_ptr->buttons[JOG_PUMP_BUTTON].current_state) {
@@ -163,6 +162,24 @@ void machine_process(machine_t* machine_ptr) {
          digitalWrite(CLEANING_VALVE_ADDRESS, 1);
       }
       
+      
+      //jog pump bottom 
+      /*if (machine_ptr->buttons[JOG_PUMP_BUTTON].current_state) {
+        LOG_PRINT(LOGGER_VERBOSE, "MOVING DOWN, current position:%d, speed:%d", machine_ptr->blender.position, MOTOR_SPEED_HALF);
+        digitalWrite(PUMP_ADDRESS, 0);
+        digitalWrite(CLEANING_VALVE_ADDRESS, 0);
+        
+      } else if (!machine_ptr->buttons[JOG_PUMP_BUTTON].current_state) {
+        //LOG_PRINT(LOGGER_VERBOSE, "MOVING DOWN, current position:%d, speed:%d", machine_ptr->blender.position, MOTOR_SPEED_HALF);
+        digitalWrite(PUMP_ADDRESS, 1);
+        digitalWrite(CLEANING_VALVE_ADDRESS, 1);
+      }
+
+      // temp hack for now, just to keep valves closed
+      if (digitalRead(LIQUID_FILLING_VALVE_ADDRESS) != 1) {
+         digitalWrite(LIQUID_FILLING_VALVE_ADDRESS, 1);
+      }
+      */
       
       machine_ptr->current_step = 0;
       machine_ptr->last_step_time = millis();
@@ -370,7 +387,7 @@ void machine_check_for_jams(machine_t* machine_ptr) {
               jam_counter +=1;
               blend_sequence.jam_counter_total +=1;
               LOG_PRINT(LOGGER_ERROR, "jam_counter:%d", jam_counter);
-              //LOG_PRINT(LOGGER_ERROR, "jam_counter_total:%d", blend_sequence.jam_counter_total);
+              LOG_PRINT(LOGGER_ERROR, "jam_counter_total:%d", blend_sequence.jam_counter_total);
             }
             else{
               jam_counter -=1;
@@ -378,14 +395,13 @@ void machine_check_for_jams(machine_t* machine_ptr) {
             }
 
             
-
             LOG_PRINT(LOGGER_ERROR, "Jammed moving down: should be:%d is:%d", where_should_we_be, machine_ptr->blender.position);
             blend_sequence.actions_ptr[machine_ptr->current_step - 4].type = ACTION_ACTIVATE;
             blend_sequence.actions_ptr[machine_ptr->current_step - 4].activate.address = BLENDER_SPEED_ADDRESS;
             blend_sequence.actions_ptr[machine_ptr->current_step - 4].activate.state = ON; //OFF
 
             blend_sequence.actions_ptr[machine_ptr->current_step - 4].type = ACTION_WAIT;
-            blend_sequence.actions_ptr[machine_ptr->current_step - 4].wait.time_to_wait = 250; //ms 750, 1250
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].wait.time_to_wait = 1250; //ms 750
 
             blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_MTP;           
             blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.new_position = machine_ptr->blender.position - 30; // position
@@ -400,55 +416,148 @@ void machine_check_for_jams(machine_t* machine_ptr) {
             blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 250; //ms
 
             machine_ptr->current_step = machine_ptr->current_step - 4;
+            
+
+            /*else{
+              for (int j = 0; j < 5; j++) {
+                LOG_PRINT(LOGGER_ERROR, "Jammed moving down: should be:%d is:%d", where_should_we_be, machine_ptr->blender.position);
+                blend_sequence.actions_ptr[machine_ptr->current_step - 4].type = ACTION_ACTIVATE;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 4].activate.address = BLENDER_SPEED_ADDRESS;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 4].activate.state = OFF; //OFF
+
+                blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_MTP;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.new_position = machine_ptr->blender.position - 45; // position TOP_OF_CUP - 20
+                blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.move_direction = BLENDER_MOVEMENT_UP;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.time_out = 3000;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 3].mtp.speed = MOTOR_SPEED_FULL;
+
+                //blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+                //blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms
+    
+                blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_MTP;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = machine_ptr->blender.position - 35; // position TOP_OF_CUP
+                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_DOWN;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.time_out = 3000;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_QUARTER; //full
+
+                blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_WAIT;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 500; //ms
+
+                machine_ptr->current_step = machine_ptr->current_step - 4;
+
+                //blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+                //blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms
+              }
+
+            }*/
+            //blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_WAIT;
+            //blend_sequence.actions_ptr[machine_ptr->current_step - 2].wait.time_to_wait = 500; //ms
 
             
+            /*blend_sequence.actions_ptr[machine_ptr->current_step - 4].type = ACTION_MTP;           
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].mtp.new_position = machine_ptr->blender.position - 60; // position
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].mtp.move_direction = BLENDER_MOVEMENT_UP;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].mtp.time_out = 3000;
+            blend_sequence.actions_ptr[machine_ptr->current_step - 4].mtp.speed = MOTOR_SPEED_QUARTER; //half
+            */
+            
+            //blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_ACTIVATE;
+            //blend_sequence.actions_ptr[machine_ptr->current_step - 3].activate.address = BLENDER_SPEED_ADDRESS;
+            //blend_sequence.actions_ptr[machine_ptr->current_step - 3].activate.state = ON;
+
+            //blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_WAIT;
+            //blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 500; //ms
+
+            //blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_ACTIVATE;
+            //blend_sequence.actions_ptr[machine_ptr->current_step - 1].activate.address = BLENDER_SPEED_ADDRESS;
+            //blend_sequence.actions_ptr[machine_ptr->current_step - 1].activate.state = OFF; //OFF
+
+            //machine_ptr->current_step = machine_ptr->current_step - 6;
+            //LOG_PRINT(LOGGER_ERROR, "******************machine_ptr->current_step:%d", machine_ptr->current_step);
+
+            
+            
+            /*if(jam_counter == 3)
+            {
+              
+
+              // add jam shake off
+              for (int j = 0; j < 5; j++) {
+
+                blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_MTP;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 1].mtp.new_position = machine_ptr->blender.position - 30; // position TOP_OF_CUP ,TOP_OF_SMOOTHIE  + 50
+                blend_sequence.actions_ptr[machine_ptr->current_step - 1].mtp.move_direction = BLENDER_MOVEMENT_DOWN;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 1].mtp.time_out = 3000;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 1].mtp.speed = MOTOR_SPEED_FULL;
+
+                blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_MTP;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = machine_ptr->blender.position - 35; // position TOP_OF_CUP - 20, TOP_OF_SMOOTHIE  + 45
+                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_UP;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.time_out = 3000;
+                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_FULL;
+
+                //blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+                //blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms
+    
+               
+                machine_ptr->current_step = machine_ptr->current_step - 2;
+
+                //blend_sequence.actions_ptr[i].type = ACTION_WAIT;
+                //blend_sequence.actions_ptr[i++].wait.time_to_wait = 250; //ms
+              }
+              blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_WAIT;
+              blend_sequence.actions_ptr[machine_ptr->current_step - 3].wait.time_to_wait = 350; //ms
+
+              
+              blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_MTP;           
+              blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = TOP_OF_SMOOTHIE + 45; // position  TOP_OF_SMOOTHIE 30
+              blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_UP;
+              blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.time_out = 3000;
+              blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_FULL; //half
+
+              blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_WAIT;
+              blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 100; //ms
+              machine_ptr->current_step = machine_ptr->current_step - 3;
+
+              jam_counter = 0;
+            }*/
             
             if(jam_counter == 3)
             {
-              if(machine_ptr->blender.position > 540){
               
-                for (int j = 0; j < 2; j++) {
-                  //votex
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 4].type = ACTION_MTP;
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 4].mtp.new_position = machine_ptr->blender.position - 60; // position TOP_OF_CUP ,TOP_OF_SMOOTHIE  + 50
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 4].mtp.move_direction = BLENDER_MOVEMENT_UP;
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 4].mtp.time_out = 3000;
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 4].mtp.speed = MOTOR_SPEED_FULL;
+              if(machine_ptr->blender.position > 555){
+              // add jam shake off
+                for (int j = 0; j < 5; j++) {
 
-
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_WAIT;
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 3].wait.time_to_wait = 350; //ms
+                  blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_MTP;
+                  blend_sequence.actions_ptr[machine_ptr->current_step - 1].mtp.new_position = machine_ptr->blender.position - 30; // position TOP_OF_CUP ,TOP_OF_SMOOTHIE  + 50
+                  blend_sequence.actions_ptr[machine_ptr->current_step - 1].mtp.move_direction = BLENDER_MOVEMENT_DOWN;
+                  blend_sequence.actions_ptr[machine_ptr->current_step - 1].mtp.time_out = 3000;
+                  blend_sequence.actions_ptr[machine_ptr->current_step - 1].mtp.speed = MOTOR_SPEED_FULL;
 
                   blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_MTP;
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = machine_ptr->blender.position - 5; // position TOP_OF_CUP - 20, TOP_OF_SMOOTHIE  + 45
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_DOWN;
+                  blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = machine_ptr->blender.position - 35; // position TOP_OF_CUP - 20, TOP_OF_SMOOTHIE  + 45
+                  blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_UP;
                   blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.time_out = 3000;
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_QUARTER;
-
-                  
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_WAIT;
-                  blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 350; //ms
-
-                  machine_ptr->current_step = machine_ptr->current_step - 4;
+                  blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_FULL;
+               
+                  machine_ptr->current_step = machine_ptr->current_step - 2;
                 }
               }
-              
-              else{
-                blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_WAIT;
-                blend_sequence.actions_ptr[machine_ptr->current_step - 3].wait.time_to_wait = 350; //ms
+
+              blend_sequence.actions_ptr[machine_ptr->current_step - 3].type = ACTION_WAIT;
+              blend_sequence.actions_ptr[machine_ptr->current_step - 3].wait.time_to_wait = 350; //ms
 
               
-                blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_MTP;           
-                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = TOP_OF_SMOOTHIE + 45; // position  TOP_OF_SMOOTHIE 30
-                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_UP;
-                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.time_out = 3000;
-                blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_FULL; //half
+              blend_sequence.actions_ptr[machine_ptr->current_step - 2].type = ACTION_MTP;           
+              blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.new_position = TOP_OF_SMOOTHIE + 45; // position  TOP_OF_SMOOTHIE 30
+              blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.move_direction = BLENDER_MOVEMENT_UP;
+              blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.time_out = 3000;
+              blend_sequence.actions_ptr[machine_ptr->current_step - 2].mtp.speed = MOTOR_SPEED_FULL; //half
 
-                blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_WAIT;
-                blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 100; //ms
-                machine_ptr->current_step = machine_ptr->current_step - 3;
-              }
-              
+              blend_sequence.actions_ptr[machine_ptr->current_step - 1].type = ACTION_WAIT;
+              blend_sequence.actions_ptr[machine_ptr->current_step - 1].wait.time_to_wait = 100; //ms
+              machine_ptr->current_step = machine_ptr->current_step - 3;
 
               jam_counter = 0;
             }

@@ -285,6 +285,7 @@ void usb_communication_parse_message(short message_id, char* buffer){
       mediator_send_message(MEDIATOR_CLEAN_CYCLE_START, (char*)"");
       break;
 
+
     case MSG_INITIALIZE:
       mediator_send_message(MEDIATOR_INITIALIZE, (char*)"");
       break;

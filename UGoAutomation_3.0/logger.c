@@ -32,7 +32,7 @@ char log_level;
   END DESCRIPTION ***********************************/
 void logger_init()
 {
-  log_level = 0;// LOGGER_ASSERT | LOGGER_ERROR | LOGGER_VERBOSE;// | LOGGER_DEBUG;
+  log_level = LOGGER_ASSERT | LOGGER_ERROR | LOGGER_VERBOSE;// | LOGGER_DEBUG;
 }
 
 /* START FUNCTION DESCRIPTION *********************
