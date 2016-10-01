@@ -273,7 +273,9 @@ void usb_communication_parse_message(short message_id, char* buffer){
     case MSG_MOVE_DOWN:
           mediator_send_message(MEDIATOR_MOVE_DOWN, (char*)"");
     break;
-
+    case MSG_DISABLE_KEYPAD:
+          mediator_send_message(MEDIATOR_DISABLE_KEYPAD, (char*)"");
+    break;
     default:
       // NOT IMPLEMENTED YET!
     break;

@@ -12,7 +12,7 @@
 #define MEDIATOR_JOG_TOP 6
 #define MEDIATOR_JOG_BOTTOM 7
 #define MEDIATOR_REBLEND 8
-
+#define MEDIATOR_DISABLE_KEYPAD 9
 
 typedef void (* ACTION_PTR)(char*);
 

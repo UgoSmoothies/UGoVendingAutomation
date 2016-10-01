@@ -26,6 +26,7 @@ void clean_cycle_start(char*);
 void initialize(char*);
 void stop_machine(char*);
 void machine_reblend(char*);
+void disable_keypad(char* message);
 
 hmi_message_t heartbeat_msg;
 
@@ -66,6 +67,7 @@ void setup() {
   mediator_register(MEDIATOR_JOG_BOTTOM, machine_jog_bottom);
   mediator_register(MEDIATOR_MOVE_UP, machine_move_up);
   mediator_register(MEDIATOR_MOVE_DOWN, machine_move_down);
+  mediator_register(MEDIATOR_DISABLE_KEYPAD, disable_keypad);
 
   heartbeat_msg.message_id = MSG_HEARTBEAT;
 
@@ -126,24 +128,27 @@ void machine_reblend(char* message){
 
 void machine_jog_top(char* message){
   LOG_PRINT(LOGGER_VERBOSE, "Jogging top");
-  digitalWrite(PUMP_ADDRESS, 1);
-  digitalWrite(LIQUID_FILLING_VALVE_ADDRESS, 1);
+  machines[0].buttons[JOG_PUMP_BUTTON].current_state = !machines[0].buttons[JOG_PUMP_BUTTON].current_state;
 }
 
 void machine_jog_bottom(char* message){
   LOG_PRINT(LOGGER_VERBOSE, "Jogging bottom");
-  digitalWrite(PUMP_ADDRESS, 1);
-  digitalWrite(CLEANING_VALVE_ADDRESS, 1);
+  digitalWrite(PUMP_ADDRESS, 0);
+  digitalWrite(CLEANING_VALVE_ADDRESS, 0);
 }
 
 void machine_move_up(char* message){
   LOG_PRINT(LOGGER_VERBOSE, "Moving up");
-  analogWrite(machines[0].blender.actuator_up_address, 0);
-  analogWrite(machines[0].blender.actuator_down_address, 50);
+  machines[0].buttons[MOVE_UP].current_state = !machines[0].buttons[MOVE_UP].current_state;
 }
 
 void machine_move_down(char* message){
   send_status("Moving down");
-  analogWrite(machines[0].blender.actuator_down_address, 0);   
-  analogWrite(machines[0].blender.actuator_up_address, 50);
+  machines[0].buttons[MOVE_DOWN].current_state = !machines[0].buttons[MOVE_DOWN].current_state;
 }
+
+void disable_keypad(char* message) {
+  send_status("Keypad toggled");
+  machines[0].keypad_enabled = ! machines[0].keypad_enabled;
+}
+

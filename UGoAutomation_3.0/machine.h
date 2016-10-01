@@ -34,6 +34,7 @@ typedef struct {
   CNewPing* cup_detect_sensor;
   input_button_t buttons[BUTTON_COUNT];
   unsigned long last_cup_read_time;
+  char keypad_enabled;
 } machine_t;
 
 void machine_init(machine_t*);

@@ -22,6 +22,7 @@
 #define MSG_REBLEND               0x000C
 #define MAX_HMI_PAYLOAD_SIZE      200
 #define MSG_STATUS                0x000D
+#define MSG_DISABLE_KEYPAD        0x000E
 
 /* CRC calculation macros */
 #define CRC_INIT 0xFFFF

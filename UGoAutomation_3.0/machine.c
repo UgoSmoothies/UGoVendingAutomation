@@ -44,6 +44,7 @@ int jam_counter = 0;//add
 void machine_init(machine_t* machine_ptr) {
   pinMode(13, OUTPUT);
   machine_ptr->is_initialized = 0;
+  machine_ptr->keypad_enabled = 1;
   machine_ptr->current_state = MACHINE_STATE_IDLE;
   machine_ptr->last_cup_read_time = millis();
 
@@ -78,8 +79,10 @@ void machine_process(machine_t* machine_ptr) {
   }
 
   // ---------- BEGING INPUT BUTTON SECTION ----------
-  for (i = 0; i < BUTTON_COUNT; i++) {
-    input_button_read(&machine_ptr->buttons[i]);
+  if (machine_ptr->keypad_enabled) {
+    for (i = 0; i < BUTTON_COUNT; i++) {
+      input_button_read(&machine_ptr->buttons[i]);
+    }
   }
 
   if (machine_ptr->current_state == MACHINE_STATE_IDLE) {
