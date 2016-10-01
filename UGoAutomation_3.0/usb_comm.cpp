@@ -54,18 +54,13 @@ static const unsigned short crc_table[256] = {
 
 /* START FUNCTION DESCRIPTION *********************
 crcsum                               <usb_comm.cpp>
-
 SYNTAX: unsigned short crcsum(const unsigned char*, unsigned long, unsigned short );
-
 DESCRIPTION:
 Calculates the crc checksum.
-
 PARAMETER1: The message to calculate the CRC for
 PARAMETER2: The length of the message
 PARAMETER2: The CRC_INIT
-
 RETURN VALUE:  the calculated checksum
-
 SM070716
 END DESCRIPTION ***********************************/
 unsigned short crcsum(const unsigned char* message, unsigned long length, unsigned short crc) {
@@ -79,17 +74,12 @@ unsigned short crcsum(const unsigned char* message, unsigned long length, unsign
 
 /* START FUNCTION DESCRIPTION *********************
 crcverify                            <usb_comm.cpp>
-
 SYNTAX: void crcverify(unsigned char*, unsigned long);
-
 DESCRIPTION:
 Checks a meesage to see if the CRC passes
-
 PARAMETER1: The message to check
 PARAMETER2: The lenght of the message
-
 RETURN VALUE:  true if passed
-
 SM070716
 END DESCRIPTION ***********************************/
 int crcverify(const unsigned char* message, unsigned long length) {
@@ -106,17 +96,12 @@ int crcverify(const unsigned char* message, unsigned long length) {
 
 /* START FUNCTION DESCRIPTION *********************
 crcappend                            <usb_comm.cpp>
-
 SYNTAX: void crcappend(unsigned char*, unsigned long);
-
 DESCRIPTION:
 Appends a message with the CRC16
-
 PARAMETER1: The message to insert the crc into
 PARAMETER2: The lenght of the message
-
 RETURN VALUE:  null
-
 SM070716
 END DESCRIPTION ***********************************/
 void crcappend(unsigned char* message, unsigned long length) {
@@ -129,14 +114,10 @@ void crcappend(unsigned char* message, unsigned long length) {
 
 /* START FUNCTION DESCRIPTION *********************
 usb_communication_process            <usb_comm.cpp>
-
 SYNTAX: int usb_communication_process( void );
-
 DESCRIPTION:
 Process any incoming messages.
-
 RETURN VALUE: 0 
-
 SM070716
 END DESCRIPTION ***********************************/
 int usb_communication_process() {
@@ -193,17 +174,12 @@ int usb_communication_process() {
 
 /* START FUNCTION DESCRIPTION *********************
 usb_commuication_create_default_message      <usb_comm.cpp>
-
 SYNTAX: void usb_commuication_create_default_message(short, hmi_message_t*);
-
 DESCRIPTION:
 Perpares an empty message for sending through the USB port.
-
 PARAMETER1: The message type to send
 PARAMETER2: A pointer to the message to prepare
-
 RETURN VALUE:  null
-
 SM070716
 END DESCRIPTION ***********************************/
 void usb_commuication_create_default_message(short MessageID, hmi_message_t* message) {
@@ -217,17 +193,12 @@ void usb_commuication_create_default_message(short MessageID, hmi_message_t* mes
 
 /* START FUNCTION DESCRIPTION *********************
 usb_communication_send_message       <usb_comm.cpp>
-
 SYNTAX: void usb_communication_send_message(hmi_message_t, unsigned int);
-
 DESCRIPTION:
 Sends a message through the USB serial port.
-
 PARAMETER1: The message to send
 PARAMETER2: The length of the message
-
 RETURN VALUE:  null
-
 SM070716
 END DESCRIPTION ***********************************/
 void usb_communication_send_message(hmi_message_t msgToSend, unsigned int len) {
@@ -269,22 +240,9 @@ void usb_communication_parse_message(short message_id, char* buffer){
       usb_communication_send_message(replyMessage, sizeof(replyMessage.auto_cycle));
     break;
   
-    case MSG_GET_FIRMWARE_VERSION:
-      usb_commuication_create_default_message(MSG_GET_FIRMWARE_VERSION, &replyMessage);
-      replyMessage.firmware.major = FIRMWARE_VERSION_MAJOR;
-      replyMessage.firmware.minor = FIRMWARE_VERSION_MINOR;
-    break;
-  
-    case MSG_GET_SENSOR_STATE:
-    break;
-  
-    case MSG_GET_ACTUATOR_STATE:
-    break;
-  
     case MSG_SANITIZE_BLENDER:
       mediator_send_message(MEDIATOR_CLEAN_CYCLE_START, (char*)"");
       break;
-
 
     case MSG_INITIALIZE:
       mediator_send_message(MEDIATOR_INITIALIZE, (char*)"");
@@ -294,6 +252,28 @@ void usb_communication_parse_message(short message_id, char* buffer){
       break;
     case MSG_TOGGLE_ACTUATOR_STATE:
       digitalWrite(buffer[8], !digitalRead(buffer[8]));
+      break;
+
+    case MSG_REBLEND:
+      mediator_send_message(MEDIATOR_REBLEND, (char*)"");
+      break;
+
+    case MSG_JOG_TOP:
+      mediator_send_message(MEDIATOR_JOG_TOP,(char*)"");
+      break;
+
+    case MSG_JOG_BOTTOM:
+      mediator_send_message(MEDIATOR_JOG_BOTTOM, (char*)"");
+      break;
+
+    case MSG_MOVE_UP:
+          mediator_send_message(MEDIATOR_MOVE_UP, (char*)"");
+    break;
+    
+    case MSG_MOVE_DOWN:
+          mediator_send_message(MEDIATOR_MOVE_DOWN, (char*)"");
+    break;
+
     default:
       // NOT IMPLEMENTED YET!
     break;
@@ -305,3 +285,10 @@ void c_send_message(hmi_message_t msg, unsigned int size) {
   usb_communication_send_message(msg, size);
 }
 
+void send_status(char* message){
+    hmi_message_t msg;
+    msg.message_id = MSG_STATUS;
+    memset(&msg.status_message.message, 0, sizeof(msg.status_message.message));
+    memcpy(&msg.status_message.message, message, strlen(message));
+    usb_communication_send_message(msg, strlen(message));
+}
