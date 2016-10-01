@@ -13,6 +13,7 @@
 #define MOTOR_SPEED_HALF (MOTOR_SPEED_FULL / 2)
 #define MOTOR_SPEED_THIRD 0x55
 #define MOTOR_SPEED_OFF 0x00
+#define MOTOR_SPEED_QUARTER (MOTOR_SPEED_FULL / 4)
 
 #define WAIT_FOR_CUP_IN_PLACE 0
 
@@ -83,11 +84,13 @@ typedef struct __attribute__((__packed__, aligned(1))) {
 typedef struct __attribute__((__packed__, aligned(1))) {
   action_t* actions_ptr;
   int total_actions;
+  int jam_counter_total; //add
 } sequence_t;
 
 sequence_t blend_sequence;
 sequence_t clean_sequence;
-
+//add
+//sequence_t initializing_sequence;
 action_t initializing_action;
 
 void blend_actions_init(char reinit);

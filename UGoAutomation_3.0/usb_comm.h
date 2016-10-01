@@ -9,7 +9,7 @@
 #define MSG_HEARTBEAT             0x0000
 #define MSG_AUTO_CYCLE            0x0001
 #define MSG_MACHINE_ERROR         0x0002
-#define MSG_MACHINE_STATE         0x0003`
+#define MSG_MACHINE_STATE         0x0003
 #define MSG_GET_FIRMWARE_VERSION  0x0004
 #define MSG_GET_SENSOR_STATE      0x0005
 #define MSG_GET_ACTUATOR_STATE    0x0006
